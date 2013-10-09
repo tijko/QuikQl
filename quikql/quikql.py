@@ -18,7 +18,7 @@ class Quikql(object):
     The wrapper class
     '''
     _SQLITE_TYPES = ['NULL', 'INTEGER', 'TEXT', 'REAL', 
-                    'BLOB', 'INTEGER PRIMARY KEY']
+                     'BLOB', 'INTEGER PRIMARY KEY']
 
     def __init__(self, filename):
         '''
@@ -87,6 +87,8 @@ class Quikql(object):
 
     def delete_table(self, table):
         '''
+        Method to delete a table.
+
             @param table: the table to delete.
         '''
         with self._conn:
