@@ -160,6 +160,7 @@ class Quikql(object):
         else:
             raise InvalidArg(name, 'column', 'list or tuple')
         if isinstance(value, tuple) or isinstance(value, list):
+            value = [repr(i) for i in value]
             value = ', '.join(value)
         else:
             raise InvalidArg(name, 'value', 'list or tuple')
