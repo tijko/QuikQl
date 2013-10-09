@@ -20,7 +20,7 @@ To create a table:
 
 To insert a row:
 
-    session.insert_row('Employees', ('name', 'id',), ('Bob', '123',))
+    session.insert_row('Employees', ['name', 'id'], ['Bob', '123'])
 
 ##Installation
 
