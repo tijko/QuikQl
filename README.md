@@ -8,16 +8,16 @@ inputting the database operations.
 
 ##Usage
 
-To use QuikQl, you create a sqlite3 session by passing in the path to your 
-database you want to work with:
+To use QuikQl, you create a sqlite3 session by passing in the path to the 
+database you want to use:
 
     >>> from quikql import Quikql as ql
-
+    >>>
     >>> session = ql('/path/to/your/database.db')
 
 To create a new table, call your QuikQl objects `create_table` method, passing 
 in a `string` for the name of your table as the first argument and any number 
-of `kwargs` with a valid sqlite3 type string as the value:
+of `kwargs` with a valid sqlite3 type as the value:
 
     >>> session.create_table('Employees', name='TEXT', id='INTEGER')
 
@@ -28,7 +28,7 @@ method.
     >>> current_tables
     [(u'Employees',)]
 
-You can quickly return a tables schema by calling th `get_schema` method,
+You can quickly return a tables schema by calling the `get_schema` method,
 just pass in the name of the table you want the schema for:
 
     >>> schema = session.get_schema('Employees')
@@ -40,12 +40,11 @@ delete.
 
     >>> session.delete_table('Employees')
 
-To insert a row, call your QuikQl objects `insert_row` method, passing in:
-the name of the table as your first argument, then a `list` or `tuple` with
-the columns you want to insert into followed by a `list` or `tuple` of those
-values.
+To insert a row, call your QuikQl objects `insert_row` method, passing in the
+name of the table as your first argument, then a `list` or `tuple` with the 
+columns you want to insert into followed by a `list` or `tuple` of those values.
 
-    session.insert_row('Employees', ['name', 'id'], ['Bob', '123'])
+    >>> session.insert_row('Employees', ['name', 'id'], ['Bob', '123'])
 
 ##Installation
 
