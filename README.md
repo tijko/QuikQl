@@ -8,17 +8,23 @@ inputting the database operations.
 
 ##Usage
 
-To use QuikQl, you create a sqlite3 session by passing in the path to your database you want to work with:
+To use QuikQl, you create a sqlite3 session by passing in the path to your 
+database you want to work with:
 
     from quikql import Quikql as ql
 
     session = ql('/path/to/your/database.db')
 
-To create a table:
+To create a table, call your QuikQl objects `create_table` method, passing in
+a string for the name of your table as the first argument and any number of 
+kwargs with a valid sqlite3 type string as the value:
 
     session.create_table('Employees', name='TEXT', id='INTEGER')
 
-To insert a row:
+To insert a row, call your QuikQl objects `insert_row` method, passing in:
+the name of the table as your first argument, then a `list` or `tuple` with
+the columns you want to insert into followed by a `list` or `tuple` of those
+values.
 
     session.insert_row('Employees', ['name', 'id'], ['Bob', '123'])
 
