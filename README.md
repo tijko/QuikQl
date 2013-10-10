@@ -15,9 +15,9 @@ database you want to work with:
 
     session = ql('/path/to/your/database.db')
 
-To create a table, call your QuikQl objects `create_table` method, passing in
-a string for the name of your table as the first argument and any number of 
-kwargs with a valid sqlite3 type string as the value:
+To create a new table, call your QuikQl objects `create_table` method, passing 
+in a `string` for the name of your table as the first argument and any number 
+of `kwargs` with a valid sqlite3 type string as the value:
 
     session.create_table('Employees', name='TEXT', id='INTEGER')
 
