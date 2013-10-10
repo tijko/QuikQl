@@ -3,8 +3,9 @@ QuikQl
 
 A simple wrapper for sqlite3.  
 
-With QuikQl you can create databases with sqlite3 without the need to manually 
-inputting the database operations. 
+With QuikQl you can create and operate on databases with sqlite3 without the 
+need to manually input the database command strings, create connections, deal 
+with cursor objects, or use context mangers to execute the commands. 
 
 ##Usage
 
