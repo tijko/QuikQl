@@ -22,7 +22,7 @@ of `kwargs` with a valid sqlite3 type as the value:
     >>> session.create_table('Employees', name='TEXT', id='INTEGER')
 
 You can return a list of all the current tables by using the `get_tables`
-method.  
+method:
 
     >>> current_tables = session.get_tables()
     >>> current_tables
@@ -35,16 +35,29 @@ just pass in the name of the table you want the schema for:
     >>> schema
     [(0, u'name', u'TEXT', 0, None, 0), (1, u'id', u'INTEGER', 0, None, 0)]
 
-Delete a table by calling `delete_table` method with the table you want to
-delete.
-
-    >>> session.delete_table('Employees')
-
 To insert a row, call your QuikQl objects `insert_row` method, passing in the
 name of the table as your first argument, then a `list` or `tuple` with the 
-columns you want to insert into followed by a `list` or `tuple` of those values.
+columns you want to insert into followed by a `list` or `tuple` of those values:
 
     >>> session.insert_row('Employees', ['name', 'id'], ['Bob', '123'])
+    
+The `dump_table` method will return all of a tables content:
+
+    >>> contents = session.dump_table('Employees')
+    >>> contents
+    [(u'Bob', 123)]
+
+To query the table by value you can use QuikQl's `get_row`.  Pass in the 
+table's name with a `list` of columns you want retrieved from the row and
+optionally a `dict` parameter of matching values:
+
+    >>> session.get_row('Employees', ['name'], {'id':'123'})
+    [(u'Bob',)]
+
+Delete a table by calling `delete_table` method with the table you want to
+delete:
+
+    >>> session.delete_table('Employees')
 
 ##Installation
 
