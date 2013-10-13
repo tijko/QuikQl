@@ -10,16 +10,13 @@ import os
 import sqlite3
 import sys
 
-from exceptions import InsufficientArgs, InvalidArg
+from exceptions import InsufficientArgs, InvalidArg, InvalidType
 
 
 class Quikql(object):
     '''
     The wrapper class
     '''
-    _SQLITE_TYPES = ['NULL', 'INTEGER', 'TEXT', 'REAL', 
-                     'BLOB', 'INTEGER PRIMARY KEY']
-
     def __init__(self, filename):
         '''
         When called pass in a file path, to set for all future calls
@@ -28,6 +25,9 @@ class Quikql(object):
             @type filename: <type 'str'>
             @param filename: file path to .db for object to use.
         '''
+        self.SQLITE_TYPES = ['NULL', 'INTEGER', 'TEXT', 'REAL', 
+                             'BLOB', 'INTEGER PRIMARY KEY'
+                            ]
         self._filename = filename
         self._conn = sqlite3.connect(self._filename)
 
@@ -73,6 +73,10 @@ class Quikql(object):
             @param columns: keyword argument/s that set column names for table. 
         '''
         name = self.create_table.__name__
+        if any(v for v in columns.values() if v not in self.SQLITE_TYPES):
+            invalid_arg = [v for v in columns.values() 
+                           if v not in self.SQLITE_TYPES]
+            raise InvalidType(name, invalid_arg[0])
         new_table = 'CREATE TABLE IF NOT EXISTS %s ' % table
         if columns:
             columns = ', '.join(' '.join(i) for i in columns.items())
