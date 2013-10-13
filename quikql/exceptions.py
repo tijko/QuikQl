@@ -25,3 +25,14 @@ class InvalidArg(Exception):
     def __str__(self):
         msg = "%s: %s must be a %s" % (self.func, argname, argtype)
         return msg
+
+class InvalidType(Exception):
+
+    def __init__(self, func, argname):
+        self.func = func
+        self.argname = argname
+
+    def __str__(self):
+        msg = "%s: Invalid type %s" % (self.func, self.argname)
+        return msg
+
