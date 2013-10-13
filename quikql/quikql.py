@@ -62,7 +62,7 @@ class Quikql(object):
                     db_values = cur.fetchone()
         return db_values
 
-    def create_table(self, table, **columns):
+    def create_table(self, table, key=None, **columns):
         '''
         Method to create new tables.
         
@@ -80,7 +80,14 @@ class Quikql(object):
         new_table = 'CREATE TABLE IF NOT EXISTS %s ' % table
         if columns:
             columns = ', '.join(' '.join(i) for i in columns.items())
-            columns = '(' + columns + ')'
+            if key:
+                fk = key.keys()[0]
+                ref = key.values()[0]
+                foreign_key = (', FOREIGN KEY(%s) REFERENCES %s(%s)' % 
+                              (fk, ref[0], ref[1]))
+                columns = '(' + columns + foreign_key + ')'
+            else:
+                columns = '(' + columns + ')'
             new_table += columns
         else:
             raise InsufficientArgs(name, 2, 1)
