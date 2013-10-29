@@ -255,6 +255,17 @@ class Quikql(object):
         table_content = self._commit_action(table_cmd, size='all') 
         return table_content
 
+    def table_size(self, table):
+        '''
+        Method to find the byte-size of the supplied table.
+
+            @type table: <type 'str'>
+            @param table: the table to find the byte-size for.
+        '''
+        table_data = self.dump_table(table)
+        byte_size = sys.getsizeof(table_data)
+        return byte_size
+
     def get_tables(self):
         '''
         Method to return all the tables in database object.
