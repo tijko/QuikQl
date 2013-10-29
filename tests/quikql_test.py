@@ -56,6 +56,15 @@ class QuikqlTest(unittest.TestCase):
         self.testdb.insert_row('test_table', ['ids'], ['2001'])
         testtable = self.testdb.dump_table('test_table')
         self.assertEqual(testtable, table)
+
+    def test_table_size(self):
+        size = 48
+        self.testdb.delete_table('test_table')
+        self.testdb.create_table('test_table', ids='INTEGER')
+        self.testdb.insert_row('test_table', ['ids'], ['2001'])
+        test_table_size = self.testdb.table_size('test_table')
+        self.assertEqual(test_table_size, size)
+
  
 if __name__ == '__main__':
     unittest.main()                
