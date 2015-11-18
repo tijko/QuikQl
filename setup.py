@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
 try:
     from setuptools import setup
 except ImportError:
@@ -15,5 +16,6 @@ setup(
     description="Sqlite3 wrapper",
     long_description=open('README.md').read(),
     license=open('LICENSE').read(),
-    packages=["quikql"]
+    packages=["quikql"],
+    package_dir={"quikql":"quikql"}
 )
