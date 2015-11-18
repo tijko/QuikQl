@@ -10,7 +10,7 @@ import os
 import sqlite3
 import sys
 
-from exceptions import InsufficientArgs, InvalidArg, InvalidType
+from exceptions import *
 
 
 class Quikql(object):
@@ -25,9 +25,9 @@ class Quikql(object):
             @type filename: <type 'str'>
             @param filename: file path to .db for object to use.
         '''
-        self.SQLITE_TYPES = ['NULL', 'INTEGER', 'TEXT', 'REAL', 
+        self.SQLITE_TYPES = {'NULL', 'INTEGER', 'TEXT', 'REAL', 
                              'BLOB', 'INTEGER PRIMARY KEY'
-                            ]
+                            }
         self._filename = filename
         self._conn = sqlite3.connect(self._filename)
 
@@ -51,7 +51,7 @@ class Quikql(object):
                 cur.execute(cmd)
             else:
                 cur.executemany(cmd, values)
-            if not size:
+            if size is None:
                 return
             elif size == 'all':
                 db_values = cur.fetchall()
@@ -62,7 +62,7 @@ class Quikql(object):
                     db_values = cur.fetchone()
         return db_values
 
-    def create_table(self, table, key=None, **columns):
+    def create_table(self, table_name, key=None, **columns):
         '''
         Method to create new tables.
         
@@ -73,28 +73,31 @@ class Quikql(object):
             @param columns: keyword argument/s that set column names for table. 
         '''
         name = self.create_table.__name__
-        if any(v for v in columns.values() if v not in self.SQLITE_TYPES):
-            invalid_arg = [v for v in columns.values() 
-                           if v not in self.SQLITE_TYPES]
-            raise InvalidType(name, invalid_arg[0])
-        new_table = 'CREATE TABLE IF NOT EXISTS %s ' % table
+        column_set = set(columns.values())
+        if not column_set.issubset(self.SQLITE_TYPES):
+            invalid_args = ' '.join(map(str, column_set)) 
+            raise InvalidType(name, invalid_args)
+        new_table = 'CREATE TABLE IF NOT EXISTS %s ' % table_name
         if columns:
-            columns = ', '.join(' '.join(i) for i in columns.items())
-            if key:
-                fk = key.keys()[0]
-                ref = key.values()[0]
-                foreign_key = (', FOREIGN KEY(%s) REFERENCES %s(%s)' % 
-                              (fk, ref[0], ref[1]))
-                columns = '(' + columns + foreign_key + ')'
+            columns = ', '.join(map(' '.join, columns.items()))
+            if key is not None:
+                foreign_key = self.create_foreign_key(key)
+                columns = '(%s%s)' % (columns, foreign_key)
             else:
-                columns = '(' + columns + ')'
+                columns = '(%s)' % columns
             new_table += columns
         else:
             raise InsufficientArgs(name, 2, 1)
+        # create one execute method
         with self._conn:
             cur = self._conn.cursor()
-            cur.execute(new_table)            
-        return
+            cur.execute(new_table) 
+
+    def create_foreign_key(self, key):
+        fk = key.keys()[0]
+        ref = key.values()[0]
+        foreign_key = ', FOREIGN KEY(%s) REFERENCES %s(%s)' % (fk, ref[0], ref[1])
+        return foreign_key
 
     def delete_table(self, table):
         '''
