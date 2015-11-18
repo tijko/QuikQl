@@ -10,8 +10,7 @@ from quikql import Quikql as ql
 class QuikqlTest(unittest.TestCase):
 
     def setUp(self):
-        path = os.getcwd()
-        self.testdb = ql(path + '/test.db')
+        self.testdb = ql(path)
         self.testdb.create_table('test_table', ids='INTEGER')
 
     def test_create_database(self):
@@ -67,4 +66,7 @@ class QuikqlTest(unittest.TestCase):
 
  
 if __name__ == '__main__':
+    path = os.getcwd() + '/test.db'
+    if os.path.isfile(path):
+        os.unlink(path)
     unittest.main()                
