@@ -62,12 +62,26 @@ class Quikql(object):
                     db_values = cur.fetchone()
         return db_values
 
+    def execute(self, command):
+        '''
+        Method that makes the actual 'execute' call to the database.
+
+        @type command: <type 'str'>
+        @param command: a string command to be executed.
+        '''
+        with self._conn:
+            cursor = self._conn.cursor()
+            cursor.execute(command)
+
     def create_table(self, table_name, key=None, **columns):
         '''
         Method to create new tables.
         
-            @type table: <type 'str'>
-            @param table: the name of the new table to create.
+            @type table_name: <type 'str'>
+            @param table_name: the name of the new table to create.
+
+            @type key: <type 'dict'>
+            @param key: the key-value pairs for the new foreign key.
 
             @type columns: <type 'dict'>
             @param columns: keyword argument/s that set column names for table. 
@@ -88,14 +102,14 @@ class Quikql(object):
             new_table += columns
         else:
             raise InsufficientArgs(name, 2, 1)
-        # create one execute method
-        with self._conn:
-            cur = self._conn.cursor()
-            cur.execute(new_table) 
+        self.execute(new_table)
 
     def create_foreign_key(self, key):
-        fk = key.keys()[0]
-        ref = key.values()[0]
+        '''
+        Method to create a foreign key request.
+            @type 
+        '''
+        fk, ref = key.items()
         foreign_key = ', FOREIGN KEY(%s) REFERENCES %s(%s)' % (fk, ref[0], ref[1])
         return foreign_key
 
@@ -105,10 +119,8 @@ class Quikql(object):
 
             @param table: the table to delete.
         '''
-        with self._conn:
-            cur = self._conn.cursor()
-            cur.execute('DROP TABLE IF EXISTS %s' % table)
-        return            
+        delete_table_command = 'DROP TABLE IF EXISTS %s' % table
+        self.execute(delete_table_command)
     
     def delete_row(self, table, column, value):
         '''
@@ -123,10 +135,8 @@ class Quikql(object):
             @type value: any acceptable sqlite3 type.
             @param value: value to search and remove.
         '''
-        with self._conn:
-            cur = self._conn.cursor()
-            cur.execute('DELETE FROM %s WHERE %s="%s"' % (table, column, value))
-        return
+        delete_row_command = 'DELETE FROM %s WHERE %s="%s"' % (table, column, value)
+        self.execute(delete_row_command)
     
     def update_row(self, table, cur_cols=dict(), update=dict()): 
         '''
