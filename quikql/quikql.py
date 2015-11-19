@@ -62,7 +62,7 @@ class Quikql(object):
                     db_values = cur.fetchone()
         return db_values
 
-    def execute(self, command):
+    def _execute(self, command):
         '''
         Method that makes the actual 'execute' call to the database.
 
