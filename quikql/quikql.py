@@ -13,6 +13,12 @@ import sys
 from exceptions import *
 
 
+SQLITE_TYPES = {'NULL', 'INTEGER', 'TEXT', 'REAL', 'BLOB', 'INTEGER PRIMARY KEY'}
+
+FALL = 'ALL'
+FONE = 'ONE'
+
+
 class Quikql(object):
     '''
     The wrapper class
@@ -25,53 +31,54 @@ class Quikql(object):
             @type filename: <type 'str'>
             @param filename: file path to .db for object to use.
         '''
-        self.SQLITE_TYPES = {'NULL', 'INTEGER', 'TEXT', 'REAL', 
-                             'BLOB', 'INTEGER PRIMARY KEY'
-                            }
         self._filename = filename
         self._conn = sqlite3.connect(self._filename)
 
-    def _commit_action(self, cmd, size=None, execute_type=None):
+    def _fetch(self, cursor, items):
         '''
-        Method to dispatch all queries to database.  Context_Manager will 
-        handle commits and closing of database connections.
+        Private method to retrieve values after a query is made.
 
-            @type cmd: <type 'str'>
-            @param cmd: valid parsed query
-    
-            @type size: <type 'NoneType'> or <type 'int'>
-            @param size: return size on a query
+            @type cursor: <type 'Cursor object'>
+            @param cursor: the current connection's cursor.
 
-            @type execute_type: <type 'str'>
-            @param execute_type: specifies what kind of commit
+            @type items: <type 'Quikql Constant'> or <type 'int'>
+            @param items: denotes the total amount of values the query is meant
+                          to return.
         '''
-        with self._conn:
-            cur = self._conn.cursor()
-            if not execute_type:
-                cur.execute(cmd)
-            else:
-                cur.executemany(cmd, values)
-            if size is None:
-                return
-            elif size == 'all':
-                db_values = cur.fetchall()
-            else:
-                if size > 1:
-                    db_values = cur.fetchmany(size)
-                else:
-                    db_values = cur.fetchone()
-        return db_values
+        if not items: return
+        if items == FONE:
+            return cursor.fetchone()
+        elif items == FALL:
+            return cursor.fetchall()
+        return cursor.fetchmany(items)
 
-    def _execute(self, command):
+    def _execute(self, command, items=0, many=False, valueiter=()):
         '''
-        Method that makes the actual 'execute' call to the database.
+        Private method to dispatch all queries to database.  The context 
+        manager will handle commits and closing of database connections.
 
         @type command: <type 'str'>
         @param command: a string command to be executed.
+
+        @type items: <type 'Quikql Constant'> or <type 'int'>
+        @param items: denotes the total amount of values the query is meant
+                      to return.
+
+        @type many: <type 'bool'>
+        @param many: Flag for whether the command is to be run over a sequence
+                     of values.
+
+        @type valueiter: <type 'iter'>
+        @param valueiter: The iterable sequence of values to run with command.
         '''
         with self._conn:
             cursor = self._conn.cursor()
-            cursor.execute(command)
+            if many: 
+                cursor.executemany(command, valueiter)
+            else:
+                cursor.execute(command)
+            fetch_values = self._fetch(cursor, items)
+        return fetch_values
 
     def create_table(self, table_name, key=None, **columns):
         '''
@@ -89,7 +96,6 @@ class Quikql(object):
         name = self.create_table.__name__
         if len(columns) == 0:
             raise InsufficientArgs(name, 2, 1)
-        
         create_table_statement = 'CREATE TABLE IF NOT EXISTS %s ' % table_name
         table_columns = self.create_columns(**columns)
         self._execute(create_table_statement + table_columns)
@@ -102,9 +108,8 @@ class Quikql(object):
         @param columns: key-value pairs to match identifier-type for the new
                         table schema.
         '''
-        column_set = set(columns.values())
-        if not column_set.issubset(self.SQLITE_TYPES):
-            invalid_args = ' '.join(map(str, column_set)) 
+        if not SQLITE_TYPES.issuperset(columns.values()):
+            invalid_args = ' '.join(map(str, columns.values())) 
             raise InvalidType(name, invalid_args)
         columns = ', '.join(map(' '.join, columns.items()))
         if key is not None:
@@ -173,8 +178,7 @@ class Quikql(object):
         except AttributeError:
             raise InvalidArg(name, 'cur_cols and update', 'dict')
         update_cmd = ('UPDATE %s SET %s WHERE %s' % (table, update, curr))
-        self._commit_action(update_cmd)
-        return
+        self._execute(update_cmd)
 
     def insert_row(self, table, column=None, value=None):
         '''
@@ -201,8 +205,7 @@ class Quikql(object):
             raise InvalidArg(name, 'value', 'list or tuple')
         replace = ('INSERT OR REPLACE INTO %s(%s) VALUES(%s)' % 
                    (table, column, value))
-        self._commit_action(replace)
-        return
+        self._execute(replace)
 
     def get_row(self, table, columns=None, value=None, size=None): 
         '''
@@ -244,9 +247,8 @@ class Quikql(object):
         else:
             row_cmd = ('SELECT %s FROM %s' % (columns, table))
         if not size:
-            size = 'all'
-        row = self._commit_action(row_cmd, size=size)
-        return row
+            size = FALL
+        return self._execute(row_cmd, items=size)
 
     def dump_table(self, table, columns=None, order=None):
         '''
@@ -276,8 +278,7 @@ class Quikql(object):
             table_cmd = ('SELECT %s FROM %s' % (columns, table))
         else:
             table_cmd = ('SELECT %s FROM %s ORDER BY %s' % (columns, table, order))
-        table_content = self._commit_action(table_cmd, size='all') 
-        return table_content
+        return self._execute(table_cmd, items=FALL) 
 
     def table_size(self, table):
         '''
@@ -287,16 +288,14 @@ class Quikql(object):
             @param table: the table to find the byte-size for.
         '''
         table_data = self.dump_table(table)
-        byte_size = sys.getsizeof(table_data)
-        return byte_size
+        return sys.getsizeof(table_data)
 
     def get_tables(self):
         '''
         Method to return all the tables in database object.
         '''
         table_cmd = ('SELECT name FROM sqlite_master WHERE type="table"')
-        table = self._commit_action(table_cmd, size='all')
-        return table
+        return self._execute(table_cmd, items=FALL)
     
     def get_schema(self, table):
         '''
@@ -306,5 +305,4 @@ class Quikql(object):
             @param table: a table name to search for in database object
         '''
         schema_cmd = ('PRAGMA TABLE_INFO(%s)' % table)
-        schema = self._commit_action(schema_cmd, size='all')
-        return schema
+        return self._execute(schema_cmd, items=FALL)
