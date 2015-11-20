@@ -87,31 +87,42 @@ class Quikql(object):
             @param columns: keyword argument/s that set column names for table. 
         '''
         name = self.create_table.__name__
+        if len(columns) == 0:
+            raise InsufficientArgs(name, 2, 1)
+        
+        create_table_statement = 'CREATE TABLE IF NOT EXISTS %s ' % table_name
+        table_columns = self.create_columns(**columns)
+        self._execute(create_table_statement + table_columns)
+
+    def create_columns(self, key=None, **columns):
+        '''
+        Method to create column schema for a new table.
+
+        @type columns: <type 'dict'>
+        @param columns: key-value pairs to match identifier-type for the new
+                        table schema.
+        '''
         column_set = set(columns.values())
         if not column_set.issubset(self.SQLITE_TYPES):
             invalid_args = ' '.join(map(str, column_set)) 
             raise InvalidType(name, invalid_args)
-        new_table = 'CREATE TABLE IF NOT EXISTS %s ' % table_name
-        if columns:
-            columns = ', '.join(map(' '.join, columns.items()))
-            if key is not None:
-                foreign_key = self.create_foreign_key(key)
-                columns = '(%s%s)' % (columns, foreign_key)
-            else:
-                columns = '(%s)' % columns
-            new_table += columns
-        else:
-            raise InsufficientArgs(name, 2, 1)
-        self.execute(new_table)
+        columns = ', '.join(map(' '.join, columns.items()))
+        if key is not None:
+            columns += self.create_foreign_key(key)
+        return '(%s)' % columns 
 
-    def create_foreign_key(self, key):
+    def create_foreign_key(self, keys):
         '''
         Method to create a foreign key request.
-            @type 
+
+        @type keys: <type 'dict'>
+        @param keys: key-value pairs representing the key and reference for a
+                     table schema.
         '''
-        fk, ref = key.items()
-        foreign_key = ', FOREIGN KEY(%s) REFERENCES %s(%s)' % (fk, ref[0], ref[1])
-        return foreign_key
+        foreignkey, references = key.popitem()
+        foreignkey_statement = ', FOREIGN KEY(%s)' % foreignkey
+        reference_statement = ' REFERENCES %s(%s)' % tuple(references)
+        return foreignkey_statement + reference_statement
 
     def delete_table(self, table):
         '''
@@ -120,7 +131,7 @@ class Quikql(object):
             @param table: the table to delete.
         '''
         delete_table_command = 'DROP TABLE IF EXISTS %s' % table
-        self.execute(delete_table_command)
+        self._execute(delete_table_command)
     
     def delete_row(self, table, column, value):
         '''
@@ -136,7 +147,7 @@ class Quikql(object):
             @param value: value to search and remove.
         '''
         delete_row_command = 'DELETE FROM %s WHERE %s="%s"' % (table, column, value)
-        self.execute(delete_row_command)
+        self._execute(delete_row_command)
     
     def update_row(self, table, cur_cols=dict(), update=dict()): 
         '''
