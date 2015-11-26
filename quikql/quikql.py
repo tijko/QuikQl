@@ -78,18 +78,18 @@ class Quikql(object):
             fetch_values = self._fetch(cursor, items)
         return fetch_values
 
-    def create_table(self, table_name, key=None, **columns):
+    def create_table(self, table_name, columns, key=None):
         '''
         Method to create new tables.
         
             @type table_name: <type 'str'>
             @param table_name: The name of the new table to create.
 
-            @type key: <type 'dict'>
-            @param key: The key-value pairs for the new foreign key.
-
             @type columns: <type 'dict'>
             @param columns: Keyword argument/s that set column names for table. 
+
+            @type key: <type 'dict'>
+            @param key: The key-value pairs for the new foreign key.
         '''
         name = self.create_table.__name__
         if len(columns) == 0:
@@ -137,7 +137,7 @@ class Quikql(object):
         delete_table_command = 'DROP TABLE IF EXISTS %s' % table
         self._execute(delete_table_command)
     
-    def delete_row(self, table, column, value):
+    def delete_row(self, table, column, row):
         '''
         Method to query table for values to remove.
 
@@ -147,10 +147,10 @@ class Quikql(object):
             @type column: <type 'str'>
             @param column: Table column to find values.
 
-            @type value: Any acceptable sqlite3 type.
-            @param value: Value to search and remove.
+            @type row: Any acceptable sqlite3 type.
+            @param row: Value in row to search and remove.
         '''
-        delete_row_command = 'DELETE FROM %s WHERE %s="%s"' % (table, column, value)
+        delete_row_command = 'DELETE FROM %s WHERE %s="%s"' % (table, column, row)
         self._execute(delete_row_command)
     
     def update_row(self, table, columns, row=None): 
@@ -174,7 +174,7 @@ class Quikql(object):
                      (table, column_update, row_values))
         self._execute(update_cmd)
 
-    def insert_row(self, table, column=None, value=None):
+    def insert_row(self, table, column, values=None):
         '''
         Replace or Insert a row into given table.
 
@@ -188,18 +188,13 @@ class Quikql(object):
         @param value: The values being inserted.
         '''
         name = self.insert_row.__name__
-        if isinstance(column, tuple) or isinstance(column, list):
-            column = ', '.join(column)
-        else:
+        if not hasattr(column, '__iter__') or not hasattr(values, '__iter__'):
             raise InvalidArg(name, 'column', 'list or tuple')
-        if isinstance(value, tuple) or isinstance(value, list):
-            value = [repr(i) for i in value]
-            value = ', '.join(value)
-        else:
-            raise InvalidArg(name, 'value', 'list or tuple')
-        replace = ('INSERT OR REPLACE INTO %s(%s) VALUES(%s)' % 
-                   (table, column, value))
-        self._execute(replace)
+        column = ', '.join(column)
+        row_values = ', '.join(values)
+        replace_command = ('INSERT OR REPLACE INTO %s(%s) VALUES(%s)' % 
+                          (table, column, row_values))
+        self._execute(replace_command)
 
     def get_row(self, table, columns=None, value=None, size=None): 
         '''
