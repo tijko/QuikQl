@@ -15,8 +15,7 @@ from exceptions import *
 
 SQLITE_TYPES = {'NULL', 'INTEGER', 'TEXT', 'REAL', 'BLOB', 'INTEGER PRIMARY KEY'}
 
-FALL = 'ALL'
-FONE = 'ONE'
+ALL = Ellipsis
 
 
 class Quikql(object):
@@ -34,7 +33,7 @@ class Quikql(object):
         self._filename = filename
         self._conn = sqlite3.connect(self._filename)
 
-    def _fetch(self, cursor, items):
+    def _fetch(self, cursor, items=None):
         '''
         Private method to retrieve values after a query is made.
 
@@ -45,14 +44,13 @@ class Quikql(object):
             @param items: denotes the total amount of values the query is meant
                           to return.
         '''
-        if not items: return
-        if items == FONE:
+        if items is None:
             return cursor.fetchone()
-        elif items == FALL:
+        elif items == ALL:
             return cursor.fetchall()
         return cursor.fetchmany(items)
 
-    def _execute(self, command, items=0, many=False, valueiter=()):
+    def _execute(self, command, items=None, many=False, valueiter=()):
         '''
         Private method to dispatch all queries to database.  The context 
         manager will handle commits and closing of database connections.
@@ -246,8 +244,6 @@ class Quikql(object):
                 raise InvalidArg(name, 'value', 'dict')
         else:
             row_cmd = ('SELECT %s FROM %s' % (columns, table))
-        if not size:
-            size = FALL
         return self._execute(row_cmd, items=size)
 
     def dump_table(self, table, columns=None, order=None):
@@ -278,7 +274,7 @@ class Quikql(object):
             table_cmd = ('SELECT %s FROM %s' % (columns, table))
         else:
             table_cmd = ('SELECT %s FROM %s ORDER BY %s' % (columns, table, order))
-        return self._execute(table_cmd, items=FALL) 
+        return self._execute(table_cmd, items=ALL) 
 
     def table_size(self, table):
         '''
@@ -295,7 +291,7 @@ class Quikql(object):
         Method to return all the tables in database object.
         '''
         table_cmd = ('SELECT name FROM sqlite_master WHERE type="table"')
-        return self._execute(table_cmd, items=FALL)
+        return self._execute(table_cmd, items=ALL)
     
     def get_schema(self, table):
         '''
@@ -305,4 +301,4 @@ class Quikql(object):
             @param table: a table name to search for in database object
         '''
         schema_cmd = ('PRAGMA TABLE_INFO(%s)' % table)
-        return self._execute(schema_cmd, items=FALL)
+        return self._execute(schema_cmd, items=ALL)
