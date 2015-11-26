@@ -7,8 +7,8 @@ transactions or other database operations and queries.
 '''
 
 import os
-import sqlite3
 import sys
+import sqlite3
 
 from exceptions import *
 
@@ -28,7 +28,7 @@ class Quikql(object):
         on wrapper-object.
     
             @type filename: <type 'str'>
-            @param filename: file path to .db for object to use.
+            @param filename: File path to .db for object to use.
         '''
         self._filename = filename
         self._conn = sqlite3.connect(self._filename)
@@ -38,10 +38,10 @@ class Quikql(object):
         Private method to retrieve values after a query is made.
 
             @type cursor: <type 'Cursor object'>
-            @param cursor: the current connection's cursor.
+            @param cursor: The current connection's cursor.
 
             @type items: <type 'Quikql Constant'> or <type 'int'>
-            @param items: denotes the total amount of values the query is meant
+            @param items: Denotes the total amount of values the query is meant
                           to return.
         '''
         if items is None:
@@ -56,10 +56,10 @@ class Quikql(object):
         manager will handle commits and closing of database connections.
 
         @type command: <type 'str'>
-        @param command: a string command to be executed.
+        @param command: A string command to be executed.
 
         @type items: <type 'Quikql Constant'> or <type 'int'>
-        @param items: denotes the total amount of values the query is meant
+        @param items: Denotes the total amount of values the query is meant
                       to return.
 
         @type many: <type 'bool'>
@@ -83,13 +83,13 @@ class Quikql(object):
         Method to create new tables.
         
             @type table_name: <type 'str'>
-            @param table_name: the name of the new table to create.
+            @param table_name: The name of the new table to create.
 
             @type key: <type 'dict'>
-            @param key: the key-value pairs for the new foreign key.
+            @param key: The key-value pairs for the new foreign key.
 
             @type columns: <type 'dict'>
-            @param columns: keyword argument/s that set column names for table. 
+            @param columns: Keyword argument/s that set column names for table. 
         '''
         name = self.create_table.__name__
         if len(columns) == 0:
@@ -103,8 +103,8 @@ class Quikql(object):
         Method to create column schema for a new table.
 
         @type columns: <type 'dict'>
-        @param columns: key-value pairs to match identifier-type for the new
-                        table schema.
+        @param columns: The key-value pairs to match identifier-type for the 
+                        new table schema.
         '''
         if not SQLITE_TYPES.issuperset(columns.values()):
             invalid_args = ' '.join(map(str, columns.values())) 
@@ -119,8 +119,8 @@ class Quikql(object):
         Method to create a foreign key request.
 
         @type keys: <type 'dict'>
-        @param keys: key-value pairs representing the key and reference for a
-                     table schema.
+        @param keys: The key-value pairs representing the key and reference for
+                     a table schema.
         '''
         foreignkey, references = key.popitem()
         foreignkey_statement = ', FOREIGN KEY(%s)' % foreignkey
@@ -131,7 +131,8 @@ class Quikql(object):
         '''
         Method to delete a table.
 
-            @param table: the table to delete.
+            @type table: <type 'str'>
+            @param table: The name of the table to delete.
         '''
         delete_table_command = 'DROP TABLE IF EXISTS %s' % table
         self._execute(delete_table_command)
@@ -141,55 +142,50 @@ class Quikql(object):
         Method to query table for values to remove.
 
             @type table: <type 'str'>
-            @param table: name of table to query.
+            @param table: Name of table to query.
 
             @type column: <type 'str'>
-            @param column: table column to find values.
+            @param column: Table column to find values.
 
-            @type value: any acceptable sqlite3 type.
-            @param value: value to search and remove.
+            @type value: Any acceptable sqlite3 type.
+            @param value: Value to search and remove.
         '''
         delete_row_command = 'DELETE FROM %s WHERE %s="%s"' % (table, column, value)
         self._execute(delete_row_command)
     
-    def update_row(self, table, cur_cols=dict(), update=dict()): 
+    def update_row(self, table, columns, row=None): 
         '''
         Update a column value to a new value.
 
             @type table: <type 'str'>
-            @param table: the table to update row in
+            @param table: The table to update row in.
     
-            @type column: <type 'dict'>
-            @param column: the column to update row in
+            @type columns: <type 'dict'>
+            @param columns: The columns to update the values of.
 
             @type value: <type 'dict'>
-            @param value: the value to insert new.
+            @param value: The value to insert new.
         '''
         name = self.update_row.__name__
-        try:
-            update = getattr(update, 'items')
-            update = [(i, repr(v)) for i,v in update()]
-            curr = getattr(cur_cols, 'items')
-            curr = [(i, repr(v)) for i,v in curr()]
-            curr = ' AND '.join(v for v in ('='.join(i) for i in curr))
-            update = ', '.join(v for v in ('='.join(i) for i in update))
-        except AttributeError:
-            raise InvalidArg(name, 'cur_cols and update', 'dict')
-        update_cmd = ('UPDATE %s SET %s WHERE %s' % (table, update, curr))
+        column_update = ', '.join(map('='.join, columns.items())) 
+        if row is not None:
+            row_values = ' AND '.join(map('='.join, row.items()))
+        update_cmd = ('UPDATE %s SET %s WHERE %s' % 
+                     (table, column_update, row_values))
         self._execute(update_cmd)
 
     def insert_row(self, table, column=None, value=None):
         '''
-        Replace or Insert a row into given table
+        Replace or Insert a row into given table.
 
         @type table: <type 'str'>
-        @param table: the table to replace/insert into
+        @param table: The table to replace/insert into.
 
-        @type column: <type 'list'> or an iterable with index
-        @param column: the columns to operate on
+        @type column: <type 'list'> or an iterable with index.
+        @param column: The columns to operate on.
 
         @type value: <type 'list'>
-        @param value: the values being inserted
+        @param value: The values being inserted.
         '''
         name = self.insert_row.__name__
         if isinstance(column, tuple) or isinstance(column, list):
@@ -212,16 +208,16 @@ class Quikql(object):
             @type table: <type 'str'> 
             @param table: the table to retrieve row from
     
-            @type column: <type 'NoneType'> or an iterable with index
-            @param column: the column to find the row value.  If none are
+            @type column: <type 'NoneType'> or an iterable with index.
+            @param column: The column to find the row value.  If none are
                            supplied, '*' will be defaulted to and all columns
-                           will be returned
+                           will be returned.
         
             @type value: <type 'NoneType'> or <type 'dict'>
-            @param value: a value to match and retrieve
+            @param value: A value to match and retrieve.
 
             @type size: <type 'int'>
-            @param size: number of entries to retrieve
+            @param size: Number of entries to retrieve.
         '''
         name = self.get_row.__name__
         if not columns and not value:
@@ -251,16 +247,16 @@ class Quikql(object):
         Method to return entire table contents.
 
             @type table: <type 'str'>
-            @param table: the table to dump contents of
+            @param table: The table to dump contents of.
 
-            @type columns: <type 'NoneType'> or an iterable with an index 
-            @param columns: columns to return data entries from.  If none are
+            @type columns: <type 'NoneType'> or an iterable with an index.
+            @param columns: Columns to return data entries from.  If none are
                             supplied, '*' will be defaulted to and all columns
-                            returned
+                            returned.
 
             @type order: <type 'NoneType'> or <type 'str'>
-            @param order: optional argument to return contents ordered by a 
-                          column
+            @param order: Optional argument to return contents ordered by a 
+                          column.
         '''
         if columns:
             if isinstance(columns, tuple) or isinstance(columns, list):            
@@ -281,7 +277,7 @@ class Quikql(object):
         Method to find the byte-size of the supplied table.
 
             @type table: <type 'str'>
-            @param table: the table to find the byte-size for.
+            @param table: The table to find the byte-size for.
         '''
         table_data = self.dump_table(table)
         return sys.getsizeof(table_data)
@@ -298,7 +294,7 @@ class Quikql(object):
         Method to return the schema of a table.
 
             @type table: <type 'str'>
-            @param table: a table name to search for in database object
+            @param table: A table name to search for in database object.
         '''
         schema_cmd = ('PRAGMA TABLE_INFO(%s)' % table)
         return self._execute(schema_cmd, items=ALL)
