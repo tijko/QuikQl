@@ -39,7 +39,7 @@ class QuikqlTest(unittest.TestCase):
     def test_get_row(self):
         row = [(2001,)]
         self.testdb.insert_row('test_table', ['ids'], ['2001'])
-        testrow = self.testdb.get_row('test_table', ('ids',), {'ids':'2001'}, size=ALL)
+        testrow = self.testdb.get_row('test_table', {'ids':'2001'}, size=ALL)
         self.assertEqual(testrow, row) 
 
     def test_delete_row(self):
