@@ -196,45 +196,23 @@ class Quikql(object):
                           (table, column, row_values))
         self._execute(replace_command)
 
-    def get_row(self, table, columns=None, value=None, size=None): 
+    def get_row(self, table, values, size=None): 
         '''
         Method to retrieve row from a specified table.
     
             @type table: <type 'str'> 
             @param table: the table to retrieve row from
     
-            @type column: <type 'NoneType'> or an iterable with index.
-            @param column: The column to find the row value.  If none are
-                           supplied, '*' will be defaulted to and all columns
-                           will be returned.
-        
-            @type value: <type 'NoneType'> or <type 'dict'>
-            @param value: A value to match and retrieve.
+            @type value: <type 'dict'>
+            @param value: A key-value pair to match and retrieve all other
+                          adjacent values in the corresponding row.
 
             @type size: <type 'int'>
             @param size: Number of entries to retrieve.
         '''
         name = self.get_row.__name__
-        if not columns and not value:
-            args = len([i for i in (table, columns, value, size) if i])
-            raise InsufficientArgs(name, 3, args)
-        if columns:
-            if isinstance(columns, tuple) or isinstance(columns, list):
-                columns = ', '.join(columns)
-            else:
-                raise InvalidArg(name, 'columns', 'list or tuple')
-        else:
-            columns = '*'
-        if value:
-            try:
-                values = getattr(value, 'items')
-                values = [(i,repr(v)) for i,v in values()]
-                value = ' AND '.join(v for v in ('='.join(i) for i in values))
-                row_cmd = ('SELECT %s FROM %s WHERE %s' % (columns, table, value))
-            except AttributeError:
-                raise InvalidArg(name, 'value', 'dict')
-        else:
-            row_cmd = ('SELECT %s FROM %s' % (columns, table))
+        row_values = ' AND '.join(map('='.join, values.items()))
+        row_cmd = 'SELECT * FROM %s WHERE %s' % (table, row_values)
         return self._execute(row_cmd, items=size)
 
     def dump_table(self, table, columns=None, order=None):
