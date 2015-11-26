@@ -11,7 +11,7 @@ class QuikqlTest(unittest.TestCase):
 
     def setUp(self):
         self.testdb = Quikql(path)
-        self.testdb.create_table('test_table', ids='INTEGER')
+        self.testdb.create_table('test_table', {'ids':'INTEGER'})
 
     def test_create_database(self):
         test_table = 'test_table'
@@ -51,7 +51,7 @@ class QuikqlTest(unittest.TestCase):
     def test_retrieve_table_content(self):
         table = [(2001,)]
         self.testdb.delete_table('test_table')
-        self.testdb.create_table('test_table', ids='INTEGER')
+        self.testdb.create_table('test_table', {'ids':'INTEGER'})
         self.testdb.insert_row('test_table', ['ids'], ['2001'])
         testtable = self.testdb.dump_table('test_table')
         self.assertEqual(testtable, table)
@@ -59,7 +59,7 @@ class QuikqlTest(unittest.TestCase):
     def test_table_size(self):
         size = 48
         self.testdb.delete_table('test_table')
-        self.testdb.create_table('test_table', ids='INTEGER')
+        self.testdb.create_table('test_table', {'ids':'INTEGER'})
         self.testdb.insert_row('test_table', ['ids'], ['2001'])
         test_table_size = self.testdb.table_size('test_table')
         self.assertEqual(test_table_size, size)
