@@ -215,34 +215,20 @@ class Quikql(object):
         row_cmd = 'SELECT * FROM %s WHERE %s' % (table, row_values)
         return self._execute(row_cmd, items=size)
 
-    def dump_table(self, table, columns=None, order=None):
+    def dump_table(self, table, order=None):
         '''
         Method to return entire table contents.
 
             @type table: <type 'str'>
             @param table: The table to dump contents of.
 
-            @type columns: <type 'NoneType'> or an iterable with an index.
-            @param columns: Columns to return data entries from.  If none are
-                            supplied, '*' will be defaulted to and all columns
-                            returned.
-
             @type order: <type 'NoneType'> or <type 'str'>
             @param order: Optional argument to return contents ordered by a 
                           column.
         '''
-        if columns:
-            if isinstance(columns, tuple) or isinstance(columns, list):            
-                columns = ', '.join(columns)
-            else:
-                name = self.dump_table.__name__
-                raise InvalidArg(name, 'columns', 'list or tuple')
-        else:
-            columns = '*'
-        if not order:
-            table_cmd = ('SELECT %s FROM %s' % (columns, table))
-        else:
-            table_cmd = ('SELECT %s FROM %s ORDER BY %s' % (columns, table, order))
+        table_cmd = 'SELECT * FROM %s' % table
+        if order is not None:
+            table_cmd += ' ORDER BY %s' % order
         return self._execute(table_cmd, items=ALL) 
 
     def table_size(self, table):
