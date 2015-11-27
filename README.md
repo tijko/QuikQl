@@ -1,26 +1,32 @@
-QuikQl
+Quikql
 ======
 
 A simple wrapper for sqlite3.  
 
-With QuikQl you can create and operate on databases with sqlite3 without the 
+This was made as an educational project to learn about deploying custom 
+python modules and database operations.  Having later learned about [sqlalchemy](http://www.sqlalchemy.org/)
+which is all that Quikql is and much more, would have been the way to go
+if not for only learning purposes.  Nevertheless it was still helpful
+educationally and practically for a quik and lightweight deployment module.
+
+With Quikql you can create and operate on databases using sqlite3 without the 
 need to manually input the database command strings, create connections, deal 
 with cursor objects, or use context mangers to execute the commands. 
 
 ##Usage
 
-To use QuikQl, you create a sqlite3 session by passing in the path to the 
+To use Quikql, you create a sqlite3 session by passing in the path to the 
 database you want to use:
 
     >>> from quikql import Quikql as ql
     >>>
     >>> session = ql('/path/to/your/database.db')
 
-To create a new table, call your QuikQl objects `create_table` method, passing 
-in a `string` for the name of your table as the first argument and any number 
-of `kwargs` with a valid sqlite3 type as the value:
+To create a new table, call your Quikql objects `create_table` method, passing 
+in a `string` for the name of your table as the first argument and a `dict` of
+any number of column names as the keys and a valid sqlite3 type as the value:
 
-    >>> session.create_table('Employees', name='TEXT', id='INTEGER')
+    >>> session.create_table('Employees', {'name':'TEXT', 'id':'INTEGER'})
 
 You can return a list of all the current tables by using the `get_tables`
 method:
@@ -36,7 +42,7 @@ just pass in the name of the table you want the schema for:
     >>> schema
     [(0, u'name', u'TEXT', 0, None, 0), (1, u'id', u'INTEGER', 0, None, 0)]
 
-To insert a row, call your QuikQl objects `insert_row` method, passing in the
+To insert a row, call your Quikql objects `insert_row` method, passing in the
 name of the table as your first argument, then a `list` or `tuple` with the 
 columns you want to insert into followed by a `list` or `tuple` of those values:
 
@@ -48,11 +54,10 @@ The `dump_table` method will return all of a tables content:
     >>> contents
     [(u'Bob', 123)]
 
-To query the table by value you can use QuikQl's `get_row`.  Pass in the 
-table's name with a `list` of columns you want retrieved from the row and
-optionally a `dict` parameter of matching values:
+To query the table by value you can use Quikql's `get_row`.  Pass in the 
+table's name with a row key-value pair matching which row to retrieve:
 
-    >>> session.get_row('Employees', ['name'], {'id':'123'})
+    >>> session.get_row('Employees', {'id':'123'})
     [(u'Bob',)]
 
 Delete a table by calling `delete_table` method with the table you want to
@@ -66,7 +71,7 @@ Download the zip file and unzip in the directory it is located:
 
     cd /path/to/Quikql
 
-    unzip QuikQl-master
+    unzip Quikql-master
 
     cd Quikql-master
 
