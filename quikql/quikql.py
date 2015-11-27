@@ -215,6 +215,19 @@ class Quikql(object):
         row_cmd = 'SELECT * FROM %s WHERE %s' % (table, row_values)
         return self._execute(row_cmd, items=size)
 
+    def get_column(self, table, column):
+        '''
+        Method to retrieve column from a specified table and column.
+
+        @type table: <type 'str'>
+        @param table: The table name to be queried for column.
+
+        @type column: <type 'str'>
+        @param column: The column name to be retrieve from table.
+        '''
+        get_column_cmd = 'SELECT %s FROM %s' % (column, table)
+        return self._execute(get_column_cmd, items=ALL)
+
     def dump_table(self, table, order=None):
         '''
         Method to return entire table contents.
