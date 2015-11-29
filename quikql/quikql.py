@@ -174,26 +174,24 @@ class Quikql(object):
                      (table, column_update, row_values))
         self._execute(update_cmd)
 
-    def insert_row(self, table, column, values=None):
+    def insert_row(self, table, values):
         '''
         Replace or Insert a row into given table.
 
         @type table: <type 'str'>
         @param table: The table to replace/insert into.
 
-        @type column: <type 'list'> or an iterable with index.
-        @param column: The columns to operate on.
-
-        @type value: <type 'list'>
-        @param value: The values being inserted.
+        @type values: <type 'dict'>
+        @param values: The key-value pairs of the column-value being inserted.
         '''
+        # XXX create an insertmany method for multiple inserts
         name = self.insert_row.__name__
-        if not hasattr(column, '__iter__') or not hasattr(values, '__iter__'):
-            raise InvalidArg(name, 'column', 'list or tuple')
-        column = ', '.join(column)
-        row_values = ', '.join(values)
+        if not isinstance(values, dict):
+            raise InvalidArg(name, 'values', 'dict')
+        repr_insert = {repr(k):repr(v) for k,v in values.items()}
+        columns, row_values = map(', '.join, zip(*repr_insert.items()))
         replace_command = ('INSERT OR REPLACE INTO %s(%s) VALUES(%s)' % 
-                          (table, column, row_values))
+                          (table, columns, row_values))
         self._execute(replace_command)
 
     def get_row(self, table, values, size=None): 
@@ -203,8 +201,8 @@ class Quikql(object):
             @type table: <type 'str'> 
             @param table: the table to retrieve row from
     
-            @type value: <type 'dict'>
-            @param value: A key-value pair to match and retrieve all other
+            @type values: <type 'dict'>
+            @param values: A key-value pair to match and retrieve all other
                           adjacent values in the corresponding row.
 
             @type size: <type 'int'>
