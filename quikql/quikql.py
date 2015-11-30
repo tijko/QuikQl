@@ -78,6 +78,9 @@ class Quikql(object):
             fetch_values = self._fetch(cursor, items)
         return fetch_values
 
+    def _field_value_stubs(self, field_values):
+        return ' AND '.join('"{}"="{}"' for _ in field_values)
+
     def _repr(self, values):
         return dict(map(repr, i) for i in values.items())
 
@@ -140,21 +143,22 @@ class Quikql(object):
         delete_table_command = 'DROP TABLE IF EXISTS %s' % table
         self._execute(delete_table_command)
     
-    def delete_row(self, table, column, row):
+    def delete_row(self, table, field_values):
         '''
         Method to query table for values to remove.
 
             @type table: <type 'str'>
             @param table: Name of table to query.
 
-            @type column: <type 'str'>
-            @param column: Table column to find values.
-
-            @type row: Any acceptable sqlite3 type.
-            @param row: Value in row to search and remove.
+            @type field_values: <type 'dict'>
+            @param field_values: The key-value pairs corresponding to the 
+                                 field and value to be matched for deletion.
         '''
-        delete_row_command = 'DELETE FROM %s WHERE %s="%s"' % (table, column, row)
-        self._execute(delete_row_command)
+        #repr_field_values = self._repr(field_values)
+        del_row_cmd = 'DELETE FROM %s WHERE ' % table
+        format_values = [v for k in field_values.items() for v in k]
+        del_row_cmd += self._field_value_stubs(field_values)
+        self._execute(del_row_cmd.format(*format_values))
     
     def update_row(self, table, columns, row=None): 
         '''
@@ -213,11 +217,10 @@ class Quikql(object):
             @param size: Number of entries to retrieve.
         '''
         name = self.get_row.__name__
-        repr_field_values = self._repr(field_values) 
+        #repr_field_values = self._repr(field_values) 
         row_cmd = 'SELECT * FROM %s WHERE ' % table
         format_values = [v for k in field_values.items() for v in k]
-        format_value_stubs = ' AND '.join('"{}"="{}"' for _ in field_values)
-        row_cmd += format_value_stubs
+        row_cmd += self._field_value_stubs(field_values)
         return self._execute(row_cmd.format(*format_values), items=size)
 
     def get_column(self, table, column):
