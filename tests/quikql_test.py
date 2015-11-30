@@ -50,13 +50,17 @@ class QuikqlTest(unittest.TestCase):
         retrieved_row = {'artist':testrow[0][2], 'title':testrow[0][1]}
         self.assertEqual(row, retrieved_row)
 
-    """
     def test_delete_row(self):
-        self.testdb.insert_row(self.tablename, ['ids'], ['2001'])
-        self.testdb.delete_row(self.tablename, 'ids', '2001')
-        table = self.testdb.dump_table(self.tablename)
-        self.assertEqual([], table)
+        row = {'artist':'Neal Howard', 'title':'The gathering'}
+        row_retrieve = (None, u'The gathering', u'Neal Howard', None,)
+        self.testdb.insert_row(self.tablename, row)
+        table_before_del = self.testdb.dump_table(self.tablename)
+        self.testdb.delete_row(self.tablename, row)
+        table_after_del = self.testdb.dump_table(self.tablename)
+        self.assertIn(row_retrieve, table_before_del)
+        self.assertNotIn(row_retrieve, table_after_del)
 
+    """
     def test_retrieve_table_content(self):
         table = [(2001,)]
         self.testdb.delete_table(self.tablename)
@@ -78,4 +82,4 @@ if __name__ == '__main__':
     path = os.getcwd() + '/test.db'
     if os.path.isfile(path):
         os.unlink(path)
-    unittest.main()                
+    unittest.main(verbosity=3) 
