@@ -154,7 +154,6 @@ class Quikql(object):
             @param field_values: The key-value pairs corresponding to the 
                                  field and value to be matched for deletion.
         '''
-        #repr_field_values = self._repr(field_values)
         del_row_cmd = 'DELETE FROM %s WHERE ' % table
         format_values = [v for k in field_values.items() for v in k]
         del_row_cmd += self._field_value_stubs(field_values)
@@ -217,7 +216,6 @@ class Quikql(object):
             @param size: Number of entries to retrieve.
         '''
         name = self.get_row.__name__
-        #repr_field_values = self._repr(field_values) 
         row_cmd = 'SELECT * FROM %s WHERE ' % table
         format_values = [v for k in field_values.items() for v in k]
         row_cmd += self._field_value_stubs(field_values)
