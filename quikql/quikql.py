@@ -78,6 +78,9 @@ class Quikql(object):
             fetch_values = self._fetch(cursor, items)
         return fetch_values
 
+    def _repr(self, values):
+        return dict(map(repr, i) for i in values.items())
+
     def create_table(self, table_name, columns, key=None):
         '''
         Method to create new tables.
@@ -188,30 +191,34 @@ class Quikql(object):
         name = self.insert_row.__name__
         if not isinstance(values, dict):
             raise InvalidArg(name, 'values', 'dict')
-        repr_insert = {repr(k):repr(v) for k,v in values.items()}
+        repr_insert = self._repr(values)
         columns, row_values = map(', '.join, zip(*repr_insert.items()))
         replace_command = ('INSERT OR REPLACE INTO %s(%s) VALUES(%s)' % 
                           (table, columns, row_values))
         self._execute(replace_command)
 
-    def get_row(self, table, values, size=None): 
+    def get_row(self, table, field_values, size=None): 
         '''
         Method to retrieve row from a specified table.
     
             @type table: <type 'str'> 
             @param table: the table to retrieve row from
     
-            @type values: <type 'dict'>
-            @param values: A key-value pair to match and retrieve all other
-                          adjacent values in the corresponding row.
+            @type field_values: <type 'dict'>
+            @param field_values: A key-value pair to match and retrieve all 
+                                 other adjacent values in the corresponding 
+                                 row.
 
             @type size: <type 'int'>
             @param size: Number of entries to retrieve.
         '''
         name = self.get_row.__name__
-        row_values = ' AND '.join(map('='.join, values.items()))
-        row_cmd = 'SELECT * FROM %s WHERE %s' % (table, row_values)
-        return self._execute(row_cmd, items=size)
+        repr_field_values = self._repr(field_values) 
+        row_cmd = 'SELECT * FROM %s WHERE ' % table
+        format_values = [v for k in field_values.items() for v in k]
+        format_value_stubs = ' AND '.join('"{}"="{}"' for _ in field_values)
+        row_cmd += format_value_stubs
+        return self._execute(row_cmd.format(*format_values), items=size)
 
     def get_column(self, table, column):
         '''
