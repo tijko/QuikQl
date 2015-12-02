@@ -97,9 +97,6 @@ class Quikql(object):
             @type key: <type 'dict'>
             @param key: The key-value pairs for the new foreign key.
         '''
-        name = self.create_table.__name__
-        if len(columns) == 0:
-            raise InsufficientArgs(name, 2, 1)
         create_table_statement = 'CREATE TABLE IF NOT EXISTS %s ' % table_name
         table_columns = self.create_columns(**columns)
         self._execute(create_table_statement + table_columns)
@@ -193,7 +190,7 @@ class Quikql(object):
         # XXX create an insertmany method for multiple inserts
         name = self.insert_row.__name__
         if not isinstance(values, dict):
-            raise InvalidArg(name, 'values', 'dict')
+            raise InvalidArg(name, 'values', type(values))
         repr_insert = self._repr(values)
         columns, row_values = map(', '.join, zip(*repr_insert.items()))
         replace_command = ('INSERT OR REPLACE INTO %s(%s) VALUES(%s)' % 
