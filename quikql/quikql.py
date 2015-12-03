@@ -109,6 +109,7 @@ class Quikql(object):
         @param columns: The key-value pairs to match identifier-type for the 
                         new table schema.
         '''
+        name = self.create_columns.__name__
         if not SQLITE_TYPES.issuperset(columns.values()):
             invalid_args = ' '.join(map(str, columns.values())) 
             raise InvalidType(name, invalid_args)
@@ -169,7 +170,6 @@ class Quikql(object):
             @type value: <type 'dict'>
             @param value: The value to insert new.
         '''
-        name = self.update_row.__name__
         column_update = ', '.join(map('='.join, columns.items())) 
         if row is not None:
             row_values = ' AND '.join(map('='.join, row.items()))
@@ -212,7 +212,6 @@ class Quikql(object):
             @type size: <type 'int'>
             @param size: Number of entries to retrieve.
         '''
-        name = self.get_row.__name__
         row_cmd = 'SELECT * FROM %s WHERE ' % table
         format_values = [v for k in field_values.items() for v in k]
         row_cmd += self._field_value_stubs(field_values)
