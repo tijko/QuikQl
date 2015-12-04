@@ -12,6 +12,9 @@ class QuikqlTest(unittest.TestCase):
     def setUp(self):
         testdb.create_table(tablename, schema)
 
+    def tearDown(self):
+        testdb.delete_table(tablename)
+
     def test_create_database(self):
         test_table = tablename
         test_retrieve = testdb.get_tables()[0]
@@ -27,10 +30,14 @@ class QuikqlTest(unittest.TestCase):
         tables = testdb.get_tables()
         self.assertFalse(tables)
 
-    def test_retrieve_schema(self):
+    def test_get_schema(self):
         test_schema = testdb.get_schema(tablename)
         schema_map = {i[1]:i[2] for i in test_schema}
         self.assertEqual(schema, schema_map)
+
+    def test_get_tables(self):
+        test_tables = testdb.get_tables()
+        self.assertIn(tablename, test_tables[0])
 
     def test_insert_row(self):
         testdb.insert_row(tablename, {'artist':'Lifetones', 
@@ -54,8 +61,6 @@ class QuikqlTest(unittest.TestCase):
         self.assertNotIn(row_retrieve, table_after_del)
 
     def test_retrieve_table_content(self):
-        testdb.delete_table(tablename)
-        testdb.create_table(tablename, schema)
         row = {'artist':'Neal Howard', 'title':'The gathering'}
         table_retrieve = [(None, u'The gathering', u'Neal Howard', None,)]
         testdb.insert_row(tablename, row)
