@@ -11,6 +11,7 @@ class QuikqlTest(unittest.TestCase):
 
     def setUp(self):
         testdb.create_table(tablename, schema)
+        testdb.insert_rows(tablename, *entries)
 
     def tearDown(self):
         testdb.delete_table(tablename)
@@ -40,8 +41,15 @@ class QuikqlTest(unittest.TestCase):
         self.assertIn(tablename, test_tables[0])
 
     def test_insert_row(self):
-        testdb.insert_row(tablename, {'artist':'Lifetones', 
-                                      'title':'Good Sides'})
+        row = {'artist':'Lifetones', 'title':'Good Sides'}
+        testdb.insert_row(tablename, row)
+
+    def test_insert_rows(self):
+        rows = [{'artist':'damu', 'title':'How its suppose to be'},
+                {'artist':'Nightmare on Wax', 'title':'You Wish'},
+                {'artist':'Deep Space House', 'duration':12423},
+                {'artist':'Bonobo', 'title':'Black sands', 'track_number':3}]
+        testdb.insert_rows(tablename, *rows)
 
     def test_get_row(self):
         row = {'artist':'Lifetones', 'title':'Good Sides'}
@@ -61,11 +69,11 @@ class QuikqlTest(unittest.TestCase):
         self.assertNotIn(row_retrieve, table_after_del)
 
     def test_retrieve_table_content(self):
-        row = {'artist':'Neal Howard', 'title':'The gathering'}
-        table_retrieve = [(None, u'The gathering', u'Neal Howard', None,)]
-        testdb.insert_row(tablename, row)
+        fields = [i[1] for i in testdb.get_schema('Music')]
+        current_entries = [tuple(entry.get(field) for field in fields) 
+                           for entry in entries]
         testtable = testdb.dump_table(tablename)
-        self.assertEqual(testtable, table_retrieve)
+        self.assertEqual(testtable, current_entries)
 
  
 if __name__ == '__main__':
@@ -76,4 +84,9 @@ if __name__ == '__main__':
     tablename = 'Music'
     schema = {'artist':'TEXT', 'title':'TEXT', 
               'duration':'INTEGER', 'track_number':'INTEGER'}
+    entries = [{'artist':'Pryda', 'title':'opus', 'duration':532},
+               {'artist':'Deadmau5', 'title':'everything after', 'track_number':3},
+               {'artist':'Steve Angello', 'title':'voices', 'duration':531},
+               {'artist':'Gramatik', 'title':'prophet2.0'},
+               {'artist':'MF Doom', 'title':'Safed Musli'}]
     unittest.main(verbosity=3) 
