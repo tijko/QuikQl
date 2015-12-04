@@ -179,7 +179,7 @@ class Quikql(object):
 
     def insert_row(self, table, values):
         '''
-        Replace or Insert a row into given table.
+        Replace or insert a row into given table.
 
         @type table: <type 'str'>
         @param table: The table to replace/insert into.
@@ -187,15 +187,31 @@ class Quikql(object):
         @type values: <type 'dict'>
         @param values: The key-value pairs of the column-value being inserted.
         '''
-        # XXX create an insertmany method for multiple inserts
         name = self.insert_row.__name__
         if not isinstance(values, dict):
             raise InvalidArg(name, 'values', type(values))
         repr_insert = self._repr(values)
         columns, row_values = map(', '.join, zip(*repr_insert.items()))
-        replace_command = ('INSERT OR REPLACE INTO %s(%s) VALUES(%s)' % 
+        insert_command = ('INSERT OR REPLACE INTO %s(%s) VALUES(%s)' % 
                           (table, columns, row_values))
-        self._execute(replace_command)
+        self._execute(insert_command)
+
+    def insert_rows(self, table, *values):
+        '''
+        Replace or insert multiple rows into given table.
+
+        @type table: <type 'str'>
+        @param table: The table to replace/insert into.
+
+        @type values: A variadic number of <type 'dict'>
+        @param values: Any number of rows to be inserted.
+        '''
+        schema = [i[1] for i in self.get_schema(table)]
+        insert_command = 'INSERT OR REPLACE INTO %s VALUES' % table
+        value_stubs = '(' + ','.join(['?' for _ in schema]) + ')'
+        insert_command += value_stubs
+        insert_values = [[value.get(i) for i in schema] for value in values]
+        self._execute(insert_command, many=True, valueiter=insert_values)
 
     def get_row(self, table, field_values, size=None): 
         '''
