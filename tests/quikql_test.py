@@ -75,7 +75,12 @@ class QuikqlTest(unittest.TestCase):
         testtable = testdb.dump_table(tablename)
         self.assertEqual(testtable, current_entries)
 
+    def test_row_insert_raisesexception(self):
+        invalid_row_insert = [('artist', 'Diplo')]
+        self.assertRaises(InvalidArg, testdb.insert_row, 
+                          tablename, invalid_row_insert)
  
+
 if __name__ == '__main__':
     path = os.getcwd() + '/test.db'
     if os.path.isfile(path):
