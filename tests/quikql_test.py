@@ -14,17 +14,16 @@ class QuikqlTest(unittest.TestCase):
         testdb.insert_rows(tablename, *entries)
 
     def tearDown(self):
-        testdb.delete_table(tablename)
+        tables = testdb.get_tables()
+        for table in tables:
+            testdb.delete_table(table)
 
-    def test_create_database(self):
-        test_table = tablename
-        test_retrieve = testdb.get_tables()[0]
-        self.assertIn(test_table, test_retrieve)
-
-    def test_retrieve_tables(self):
-        tables = tablename
-        test_retrieve = testdb.get_tables()[0]
-        self.assertIn(tables, test_retrieve)
+    def test_create_table(self):
+        testtable = 'Open_Source_Software'
+        schema = {'name':'TEXT', 'language':'TEXT', 'loc':'INTEGER'}
+        testdb.create_table(testtable, schema)
+        tables = [i[0] for i in testdb.get_tables()]
+        self.assertIn(testtable, tables)
 
     def test_delete_table(self):
         testdb.delete_table(tablename)
@@ -86,7 +85,7 @@ class QuikqlTest(unittest.TestCase):
                           tablename, invalid_row_delete)
 
     def test_get_InvalidArg(self):
-        invalid_row_get = [('title', 'Franz Schubert')]
+        invalid_row_get = [('artist', 'Franz Schubert')]
         self.assertRaises(InvalidArg, testdb.get_row,
                           tablename, invalid_row_get)
  
