@@ -2,37 +2,25 @@
 # -*- coding: utf-8 -*-
 
 
-class InsufficientArgs(Exception):
+class InvalidArg(TypeError):
+    '''
+    Exception class that is raised to handle bad arguments passed.
 
-    def __init__(self, func, manarg, argnum):
-        self.func = func
-        self.manarg = manarg
-        self.argnum = argnum 
+    @type arg_type: <type 'type'>
+    @param arg_type: The type that was passed and resulted in exeception being
+                     raised.
+    '''
+    def __init__(self, arg_type):
+        super(InvalidArg, self).__init__(arg_type)
 
-    def __str__(self):
-        msg = ("%s expected at least %d arguments, got %d" % 
-               (self.func, self.manarg, self.argnum))
-        return msg
 
- 
-class InvalidArg(Exception):
+class InvalidSQLType(ValueError):
+    '''
+    Exception class that is raised to handle bad sqlite types passed.
 
-    def __init__(self, func, argname, argtype):
-        self.func = func
-        self.argname = argname
-        self.argtype = argtype
-
-    def __str__(self):
-        msg = "%s: %s must be a %s" % (self.func, argname, argtype)
-        return msg
-
-class InvalidType(Exception):
-
-    def __init__(self, func, argname):
-        self.func = func
-        self.argname = argname
-
-    def __str__(self):
-        msg = "%s: Invalid type %s" % (self.func, self.argname)
-        return msg
-
+    @type values: <type 'str'>
+    @param values: A string of the columns type names that were passed and
+                   resulted in the exeception being raised.
+    '''
+    def __init__(self, values):
+        super(InvalidSQLType, self).__init__(values)
