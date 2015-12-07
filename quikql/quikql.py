@@ -105,6 +105,9 @@ class Quikql(object):
         '''
         Method to create column schema for a new table.
 
+        @type key: optional argument of <type 'str'>
+        @param key: The key that the newly created column will reference.
+
         @type columns: <type 'dict'>
         @param columns: The key-value pairs to match identifier-type for the 
                         new table schema.
@@ -170,6 +173,9 @@ class Quikql(object):
 
             @type value: <type 'dict'>
             @param value: The value to insert new.
+
+            @type row: optional argument of <type 'str'>
+            @param row: A value to match to a row.
         '''
         column_update = ', '.join(map('='.join, columns.items())) 
         if row is not None:
@@ -229,6 +235,8 @@ class Quikql(object):
             @type size: <type 'int'>
             @param size: Number of entries to retrieve.
         '''
+        if not isinstance(field_values, dict):
+            raise InvalidArg(type(field_values))
         row_cmd = 'SELECT * FROM %s WHERE ' % table
         format_values = [v for k in field_values.items() for v in k]
         row_cmd += self._field_value_stubs(field_values)
