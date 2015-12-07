@@ -84,7 +84,17 @@ class QuikqlTest(unittest.TestCase):
         invalid_row_delete = [('artist', 'Frank Sinatra')]
         self.assertRaises(InvalidArg, testdb.delete_row,
                           tablename, invalid_row_delete)
+
+    def test_get_InvalidArg(self):
+        invalid_row_get = [('title', 'Franz Schubert')]
+        self.assertRaises(InvalidArg, testdb.get_row,
+                          tablename, invalid_row_get)
  
+    def test_create_InvalidSQLType(self):
+        table = 'Foo'
+        schema = {'Bar':'Baz'}
+        self.assertRaises(InvalidSQLType, testdb.create_table, table, schema)
+
 
 if __name__ == '__main__':
     path = os.getcwd() + '/test.db'
