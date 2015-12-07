@@ -109,10 +109,9 @@ class Quikql(object):
         @param columns: The key-value pairs to match identifier-type for the 
                         new table schema.
         '''
-        name = self.create_columns.__name__
         if not SQLITE_TYPES.issuperset(columns.values()):
             invalid_args = ' '.join(map(str, columns.values())) 
-            raise InvalidType(name, invalid_args)
+            raise InvalidSQLType(invalid_args)
         columns = ', '.join(map(' '.join, columns.items()))
         if key is not None:
             columns += self.create_foreign_key(key)
@@ -152,6 +151,8 @@ class Quikql(object):
             @param field_values: The key-value pairs corresponding to the 
                                  field and value to be matched for deletion.
         '''
+        if not isinstance(field_values, dict):
+            raise InvalidArg(type(field_values))
         del_row_cmd = 'DELETE FROM %s WHERE ' % table
         format_values = [v for k in field_values.items() for v in k]
         del_row_cmd += self._field_value_stubs(field_values)
@@ -189,7 +190,7 @@ class Quikql(object):
         '''
         name = self.insert_row.__name__
         if not isinstance(values, dict):
-            raise InvalidArg(name, 'values', type(values))
+            raise InvalidArg(type(values))
         repr_insert = self._repr(values)
         columns, row_values = map(', '.join, zip(*repr_insert.items()))
         insert_command = ('INSERT OR REPLACE INTO %s(%s) VALUES(%s)' % 
@@ -276,7 +277,7 @@ class Quikql(object):
         '''
         Method to return all the tables in database object.
         '''
-        table_cmd = ('SELECT name FROM sqlite_master WHERE type="table"')
+        table_cmd = 'SELECT name FROM sqlite_master WHERE type="table"'
         return self._execute(table_cmd, items=ALL)
     
     def get_schema(self, table):
@@ -286,5 +287,5 @@ class Quikql(object):
             @type table: <type 'str'>
             @param table: A table name to search for in database object.
         '''
-        schema_cmd = ('PRAGMA TABLE_INFO(%s)' % table)
+        schema_cmd = 'PRAGMA TABLE_INFO(%s)' % table
         return self._execute(schema_cmd, items=ALL)
