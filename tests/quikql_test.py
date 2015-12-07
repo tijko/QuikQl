@@ -75,10 +75,15 @@ class QuikqlTest(unittest.TestCase):
         testtable = testdb.dump_table(tablename)
         self.assertEqual(testtable, current_entries)
 
-    def test_row_insert_raisesexception(self):
+    def test_insert_InvalidArg(self):
         invalid_row_insert = [('artist', 'Diplo')]
         self.assertRaises(InvalidArg, testdb.insert_row, 
                           tablename, invalid_row_insert)
+
+    def test_delete_InvalidArg(self):
+        invalid_row_delete = [('artist', 'Frank Sinatra')]
+        self.assertRaises(InvalidArg, testdb.delete_row,
+                          tablename, invalid_row_delete)
  
 
 if __name__ == '__main__':
