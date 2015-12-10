@@ -174,15 +174,17 @@ class Quikql(object):
             @type value: <type 'dict'>
             @param value: The value to insert new.
 
-            @type row: optional argument of <type 'str'>
-            @param row: A value to match to a row.
+            @type row: optional argument of <type 'dict'>
+            @param row: A key-values to match to a row.
         '''
-        column_update = ', '.join(map('='.join, columns.items())) 
+        repr_column = self._repr(columns)
+        column_update = ', '.join(map('='.join, repr_column.items()))
+        update_cmd = 'UPDATE %s SET %s' % (table, column_update)
+        fields = []
         if row is not None:
-            row_values = ' AND '.join(map('='.join, row.items()))
-        update_cmd = ('UPDATE %s SET %s WHERE %s' % 
-                     (table, column_update, row_values))
-        self._execute(update_cmd)
+            update_cmd += ' WHERE ' + self._field_value_stubs(row)
+            fields = [v for k in row.items() for v in k]
+        self._execute(update_cmd.format(*fields))
 
     def insert_row(self, table, values):
         '''
@@ -194,7 +196,6 @@ class Quikql(object):
         @type values: <type 'dict'>
         @param values: The key-value pairs of the column-value being inserted.
         '''
-        name = self.insert_row.__name__
         if not isinstance(values, dict):
             raise InvalidArg(type(values))
         repr_insert = self._repr(values)
