@@ -44,11 +44,25 @@ class QuikqlTest(unittest.TestCase):
         testdb.insert_row(tablename, row)
 
     def test_insert_rows(self):
+        fields = ['duration', 'title', 'artist', 'track_number']
         rows = [{'artist':'damu', 'title':'How its suppose to be'},
                 {'artist':'Nightmare on Wax', 'title':'You Wish'},
                 {'artist':'Deep Space House', 'duration':12423},
                 {'artist':'Bonobo', 'title':'Black sands', 'track_number':3}]
         testdb.insert_rows(tablename, *rows)
+        table = testdb.dump_table(tablename)
+        rows.extend(entries)
+        current_entries = []
+        for entry in table:
+            row = {}
+            for i in range(len(entry)):
+                if entry[i] is not None:
+                    row[fields[i]] = entry[i]
+            if row:
+                current_entries.append(row)
+        for row in rows:
+            print row
+            self.assertIn(row, current_entries)
 
     def test_get_row(self):
         row = {'artist':'Lifetones', 'title':'Good Sides'}
