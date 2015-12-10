@@ -44,7 +44,6 @@ class QuikqlTest(unittest.TestCase):
         testdb.insert_row(tablename, row)
 
     def test_insert_rows(self):
-        fields = ['duration', 'title', 'artist', 'track_number']
         rows = [{'artist':'damu', 'title':'How its suppose to be'},
                 {'artist':'Nightmare on Wax', 'title':'You Wish'},
                 {'artist':'Deep Space House', 'duration':12423},
@@ -61,7 +60,6 @@ class QuikqlTest(unittest.TestCase):
             if row:
                 current_entries.append(row)
         for row in rows:
-            print row
             self.assertIn(row, current_entries)
 
     def test_get_row(self):
@@ -87,6 +85,14 @@ class QuikqlTest(unittest.TestCase):
                            for entry in entries]
         testtable = testdb.dump_table(tablename)
         self.assertEqual(testtable, current_entries)
+
+    def test_update_row(self):
+        update_row = {'artist':'Deadmau5', 'track_number':3}
+        update_column = {'title':'ID', 'track_number':4}
+        new_row = (None, u'ID', u'Deadmau5', 4)
+        testdb.update_row(tablename, update_column, update_row)
+        table_dump = testdb.dump_table(tablename)
+        self.assertIn(new_row, table_dump)
 
     def test_insert_InvalidArg(self):
         invalid_row_insert = [('artist', 'Diplo')]
@@ -115,6 +121,7 @@ if __name__ == '__main__':
         os.unlink(path)
     testdb = Quikql(path)
     tablename = 'Music'
+    fields = ['duration', 'title', 'artist', 'track_number']
     schema = {'artist':'TEXT', 'title':'TEXT', 
               'duration':'INTEGER', 'track_number':'INTEGER'}
     entries = [{'artist':'Pryda', 'title':'opus', 'duration':532},
