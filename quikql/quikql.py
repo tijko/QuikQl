@@ -171,11 +171,8 @@ class Quikql(object):
             @type columns: <type 'dict'>
             @param columns: The columns to update the values of.
 
-            @type value: <type 'dict'>
-            @param value: The value to insert new.
-
             @type row: optional argument of <type 'dict'>
-            @param row: A key-values to match to a row.
+            @param row: The key-value pairs  to match to a row.
         '''
         repr_column = self._repr(columns)
         column_update = ', '.join(map('='.join, repr_column.items()))
