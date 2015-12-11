@@ -94,6 +94,14 @@ class QuikqlTest(unittest.TestCase):
         table_dump = testdb.dump_table(tablename)
         self.assertIn(new_row, table_dump)
 
+    def test_update_invalid_row(self):
+        invalid_update_row = {'artist':'Led Zeppelin'}
+        update_column = {'title':'Misty Mountain Top', 'track_number':3}
+        new_row = (None, u'Misty Mountain Top', 'Led Zeppelin', 3)
+        testdb.update_row(tablename, update_column, invalid_update_row)
+        table_dump = testdb.dump_table(tablename)
+        self.assertNotIn(new_row, table_dump)
+
     def test_insert_InvalidArg(self):
         invalid_row_insert = [('artist', 'Diplo')]
         self.assertRaises(InvalidArg, testdb.insert_row, 
