@@ -79,6 +79,13 @@ class QuikqlTest(unittest.TestCase):
         self.assertIn(row_retrieve, table_before_del)
         self.assertNotIn(row_retrieve, table_after_del)
 
+    def test_delete_invalid_row(self):
+        row = {'artist':'The Doors', 'title':'Soul Kitchen'}
+        table_before_delete = testdb.dump_table(tablename)
+        testdb.delete_row(tablename, row)
+        table_after_delete = testdb.dump_table(tablename)
+        self.assertEqual(table_before_delete, table_after_delete)
+
     def test_retrieve_table_content(self):
         fields = [i[1] for i in testdb.get_schema('Music')]
         current_entries = [tuple(entry.get(field) for field in fields) 
