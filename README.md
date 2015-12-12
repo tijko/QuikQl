@@ -1,6 +1,8 @@
 Quikql
 ======
 
+[![Build Status](https://travis-ci.org/tijko/Quikql.svg?branch=master)](https://travis-ci.org/tijko/Quikql)
+
 A simple wrapper for sqlite3.  
 
 This was made as an educational project to learn about deploying custom 
