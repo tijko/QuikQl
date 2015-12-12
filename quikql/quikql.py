@@ -268,8 +268,20 @@ class Quikql(object):
         count_cmd = 'SELECT COUNT(%s) FROM %s' % (field, table)
         return self._execute(count_cmd) 
 
-    def min(self, row):
-        pass
+    def min(self, table, field):
+        '''
+        Method to find the minimum value of the specified field.
+
+        @type table: <type 'str'>
+        @param table: The table name to be queried for field count.
+
+        @type field: <type 'str'>
+        @param field: The name of the field to find the minimum value for.
+        '''
+        if not isinstance(field, str):
+            raise InvalidArg(type(field))
+        minimum_cmd = 'SELECT MIN(%s) FROM %s' % (field, table)
+        return self._execute(minimum_cmd)
 
     def max(self, row):
         pass
