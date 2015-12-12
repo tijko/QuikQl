@@ -273,7 +273,7 @@ class Quikql(object):
         Method to find the minimum value of the specified field.
 
         @type table: <type 'str'>
-        @param table: The table name to be queried for field count.
+        @param table: The table name to be queried for field minimum.
 
         @type field: <type 'str'>
         @param field: The name of the field to find the minimum value for.
@@ -283,8 +283,20 @@ class Quikql(object):
         minimum_cmd = 'SELECT MIN(%s) FROM %s' % (field, table)
         return self._execute(minimum_cmd)
 
-    def max(self, row):
-        pass
+    def max(self, table, field):
+        '''
+        Method to find the maximum value of the specified field.
+
+        @type table: <type 'str'>
+        @param table: The table name to be queried for field maximum.
+
+        @type field: <type 'str'>
+        @param field: The name of the field to find the maximum value for.
+        '''
+        if not isinstance(field, str):
+            raise InvalidArg(type(field))
+        maximum_cmd = 'SELECT MAX(%s) FROM %s' % (field, table)
+        return self._execute(maximum_cmd)
 
     def sum(self, row):
         pass
