@@ -86,6 +86,13 @@ class QuikqlTest(unittest.TestCase):
         table_after_delete = testdb.dump_table(tablename)
         self.assertEqual(table_before_delete, table_after_delete)
 
+    def test_count_field(self):
+        field_set = {k for e in entries for k in e.keys()}
+        field_counts = {'artist':5, 'title':5, 'duration':2, 'track_number':1}
+        for field in field_set:
+            self.assertEqual(field_counts[field], 
+                             *testdb.count(tablename, field)[0])
+
     def test_retrieve_table_content(self):
         fields = [i[1] for i in testdb.get_schema('Music')]
         current_entries = [tuple(entry.get(field) for field in fields) 
