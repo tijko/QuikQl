@@ -298,8 +298,20 @@ class Quikql(object):
         maximum_cmd = 'SELECT MAX(%s) FROM %s' % (field, table)
         return self._execute(maximum_cmd)
 
-    def sum(self, row):
-        pass
+    def sum(self, table, field):
+        '''
+        Method to find the total sum of the values from the specified field.
+
+        @type table: <type 'str'>
+        @param table: The table name to find the sum of fields for.
+
+        @type field: <type 'str'>
+        @param field: The name of the field to find the sum for.
+        '''
+        if not isinstance(field, str):
+            raise InvalidArg(type(field))
+        sum_cmd = 'SELECT SUM(%s) FROM %s' % (field, table)
+        return self._execute(sum_cmd)
 
     def dump_table(self, table, order=None):
         '''
