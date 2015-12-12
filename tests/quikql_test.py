@@ -93,6 +93,10 @@ class QuikqlTest(unittest.TestCase):
             self.assertEqual(field_counts[field], 
                              *testdb.count(tablename, field)[0])
 
+    def test_count_InvalidArg(self):
+        self.assertRaises(InvalidArg, testdb.count,
+                          tablename, ['field1', 'field2'])
+
     def test_retrieve_table_content(self):
         fields = [i[1] for i in testdb.get_schema('Music')]
         current_entries = [tuple(entry.get(field) for field in fields) 
