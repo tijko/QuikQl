@@ -6,11 +6,11 @@ Quikql
 A simple wrapper for sqlite3.  
 
 This was made as an educational project to learn about deploying custom 
-python modules and database operations.  Having later learned about [sqlalchemy](http://www.sqlalchemy.org/)
-which is all that Quikql is and much more, would have been the way to go
-if not for only learning purposes.  Nevertheless it was still helpful
-educationally and practically for deploying a quick and lightweight database
-module.
+python modules as well as basic database operations.  Having later learned about
+[sqlalchemy](http://www.sqlalchemy.org/) as an Object-Relational Mapping which 
+is all that Quikql is and much more, would have been the way to go if not for 
+only learning purposes.  Nevertheless it was still helpful educationally and 
+practically for deploying a quick and lightweight database ORM module.
 
 With Quikql you can create and operate on databases using sqlite3 without the 
 need to manually input the database command strings, create connections, deal 
