@@ -1,4 +1,4 @@
 language: python2.7
 
 script:
-    python setup install
+    python setup.py install
