@@ -33,23 +33,6 @@ class Quikql(object):
         self._filename = filename
         self._conn = sqlite3.connect(self._filename)
 
-    def _fetch(self, cursor, items=None):
-        '''
-        Private method to retrieve values after a query is made.
-
-            @type cursor: <type 'Cursor object'>
-            @param cursor: The current connection's cursor.
-
-            @type items: <type 'Quikql Constant'> or <type 'int'>
-            @param items: Denotes the total amount of values the query is meant
-                          to return.
-        '''
-        if items is None:
-            return cursor.fetchone()
-        elif items == ALL:
-            return cursor.fetchall()
-        return cursor.fetchmany(items)
-
     def _execute(self, command, items=None, many=False, valueiter=()):
         '''
         Private method to dispatch all queries to database.  The context 
@@ -77,6 +60,23 @@ class Quikql(object):
                 cursor.execute(command)
             fetch_values = self._fetch(cursor, items)
         return fetch_values
+
+    def _fetch(self, cursor, items=None):
+        '''
+        Private method to retrieve values after a query is made.
+
+            @type cursor: <type 'Cursor object'>
+            @param cursor: The current connection's cursor.
+
+            @type items: <type 'Quikql Constant'> or <type 'int'>
+            @param items: Denotes the total amount of values the query is meant
+                          to return.
+        '''
+        if items is None:
+            return cursor.fetchone()
+        elif items == ALL:
+            return cursor.fetchall()
+        return cursor.fetchmany(items)
 
     def _field_value_stubs(self, field_values):
         return ' AND '.join('"{}"="{}"' for _ in field_values)
@@ -252,6 +252,30 @@ class Quikql(object):
         '''
         get_column_cmd = 'SELECT %s FROM %s' % (column, table)
         return self._execute(get_column_cmd, items=ALL)
+
+    def count(self, table, field):
+        '''
+        Method to count the number of non-none fields of a specified field.
+
+        @type table: <type 'str'>
+        @param table: The table name to be queried for field count.
+
+        @type field: <type 'str'>
+        @param field: The name of the field to match for count.
+        '''
+        if not isinstance(field, str):
+            raise InvalidArg(type(field))
+        count_cmd = 'SELECT COUNT(%s) FROM %s' % (field, table)
+        return self._execute(count_cmd) 
+
+    def min(self, row):
+        pass
+
+    def max(self, row):
+        pass
+
+    def sum(self, row):
+        pass
 
     def dump_table(self, table, order=None):
         '''
