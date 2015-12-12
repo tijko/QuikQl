@@ -112,6 +112,14 @@ class QuikqlTest(unittest.TestCase):
     def test_maximum_InvalidArg(self):
         self.assertRaises(InvalidArg, testdb.max, tablename, ['field1', 'field2'])
 
+    def test_sum(self):
+        duration_total = sum([entry['duration'] for entry in 
+                              entries if entry.get('duration')])
+        self.assertEqual(duration_total, testdb.sum(tablename, 'duration')[0])
+
+    def test_sum_InvalidArg(self):
+        self.assertRaises(InvalidArg, testdb.sum, tablename, ['field1', 'field2'])
+
     def test_retrieve_table_content(self):
         fields = [i[1] for i in testdb.get_schema('Music')]
         current_entries = [tuple(entry.get(field) for field in fields) 
