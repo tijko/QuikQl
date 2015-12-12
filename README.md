@@ -46,10 +46,10 @@ just pass in the name of the table you want the schema for:
     [(0, u'name', u'TEXT', 0, None, 0), (1, u'id', u'INTEGER', 0, None, 0)]
 
 To insert a row, call your Quikql objects `insert_row` method, passing in the
-name of the table as your first argument, then a `list` or `tuple` with the 
-columns you want to insert into followed by a `list` or `tuple` of those values:
+name of the table as your first argument, then a `dict` with the keys as the
+column names and the values as the value of specified column:
 
-    >>> session.insert_row('Employees', ['name', 'id'], ['Bob', '123'])
+    >>> session.insert_row('Employees', {'name':'Bob', 'id':'123'})
     
 The `dump_table` method will return all of a tables content:
 
