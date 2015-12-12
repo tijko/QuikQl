@@ -104,6 +104,14 @@ class QuikqlTest(unittest.TestCase):
     def test_minimum_InvalidArg(self):
         self.assertRaises(InvalidArg, testdb.min, tablename, ['field1', 'field2'])
 
+    def test_maximum_field(self):
+        for field in field_set:
+            field_maximum = max([entry[field] for entry in entries if entry.get(field)])
+            self.assertEqual(field_maximum, testdb.max(tablename, field)[0])
+
+    def test_maximum_InvalidArg(self):
+        self.assertRaises(InvalidArg, testdb.max, tablename, ['field1', 'field2'])
+
     def test_retrieve_table_content(self):
         fields = [i[1] for i in testdb.get_schema('Music')]
         current_entries = [tuple(entry.get(field) for field in fields) 
