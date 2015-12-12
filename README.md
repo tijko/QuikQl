@@ -3,7 +3,7 @@ Quikql
 
 [![Build Status](https://travis-ci.org/tijko/Quikql.svg?branch=master)](https://travis-ci.org/tijko/Quikql)
 
-A simple wrapper for sqlite3.  
+A simple wrapper for [sqlite3](https://docs.python.org/2/library/sqlite3.html).  
 
 This was made as an educational project to learn about deploying custom 
 python modules as well as basic database operations.  Having later learned about
