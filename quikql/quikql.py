@@ -133,6 +133,42 @@ class Quikql(object):
         reference_statement = ' REFERENCES %s(%s)' % tuple(references)
         return foreignkey_statement + reference_statement
 
+    def attach(self, database_name, schema_name):
+        '''
+        Method to attach another database the current sqlite connection.
+
+        @type database_name: <type 'str'>
+        @param database_name: The database filename to add to the current connection.
+
+        @type schema_name: <type 'str'>
+        @param schema_name: The name that sqlite will use internally to 
+                            reference this database.
+        '''
+        attach_command = ('ATTACH DATABASE "%s" AS %s' % 
+                         (database_name, schema_name))
+        self._execute(attach_command)
+
+    def detach(self, schema_name):
+        '''
+        Method to detach a previously attached database from the current
+        connection.
+
+        @type schema_name: <type 'str'>
+        @param schema_name: The name sqlite used to refer to this database.
+                            internally (see `attach`).
+        '''
+        detach_command = 'DETACH DATABASE %s' % schema_name
+        self._execute(detach_command)
+ 
+    def attached(self):
+        '''
+        Method to list all the current databases attached to the current
+        connection.
+        '''
+        attached_command = 'PRAGMA DATABASE_LIST'
+        return dict(database[1:] for database in 
+                    self._execute(attached_command, items=ALL))
+
     def delete_table(self, table):
         '''
         Method to delete a table.
