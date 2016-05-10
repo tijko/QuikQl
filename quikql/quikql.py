@@ -32,6 +32,7 @@ class Quikql(object):
         '''
         self._filename = filename
         self._conn = sqlite3.connect(self._filename)
+        self._execute('PRAGMA FOREIGN_KEYS=1')
 
     def _execute(self, command, items=None, many=False, valueiter=()):
         '''
@@ -84,7 +85,7 @@ class Quikql(object):
     def _repr(self, values):
         return dict(map(repr, i) for i in values.items())
 
-    def create_table(self, table_name, columns, key=None):
+    def create_table(self, table_name, columns, pkey={}, fkey=None):
         '''
         Method to create new tables.
         
@@ -98,10 +99,10 @@ class Quikql(object):
             @param key: The key-value pairs for the new foreign key.
         '''
         create_table_statement = 'CREATE TABLE IF NOT EXISTS %s ' % table_name
-        table_columns = self.create_columns(**columns)
+        table_columns = self.create_columns(columns, pkey=pkey, fkey=fkey)
         self._execute(create_table_statement + table_columns)
 
-    def create_columns(self, key=None, **columns):
+    def create_columns(self, columns, pkey={}, fkey=None):
         '''
         Method to create column schema for a new table.
 
@@ -115,12 +116,14 @@ class Quikql(object):
         if not SQLITE_TYPES.issuperset(columns.values()):
             invalid_args = ' '.join(map(str, columns.values())) 
             raise InvalidSQLType(invalid_args)
-        columns = ', '.join(map(' '.join, columns.items()))
-        if key is not None:
-            columns += self.create_foreign_key(key)
-        return '(%s)' % columns 
+        columns_statement = ', '.join([' '.join(i) if pkey.get(i[0]) is None else
+                                       ' '.join(i) + ' PRIMARY KEY' for i in 
+                                        columns.items()])
+        if fkey is not None:
+            columns_statement += self.create_foreign_key(fkey)
+        return '({})'.format(columns_statement)
 
-    def create_foreign_key(self, keys):
+    def create_foreign_key(self, fkeys):
         '''
         Method to create a foreign key request.
 
@@ -128,10 +131,10 @@ class Quikql(object):
         @param keys: The key-value pairs representing the key and reference for
                      a table schema.
         '''
-        foreignkey, references = key.popitem()
-        foreignkey_statement = ', FOREIGN KEY(%s)' % foreignkey
-        reference_statement = ' REFERENCES %s(%s)' % tuple(references)
-        return foreignkey_statement + reference_statement
+        foreignkey_statement = ''
+        for fkey in fkeys:
+            foreignkey_statement += ', FOREIGN KEY({}) REFERENCES {}({})'.format(fkey, *fkeys[fkey])
+        return foreignkey_statement
 
     def attach(self, database_name, schema_name):
         '''
