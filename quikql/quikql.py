@@ -133,7 +133,8 @@ class Quikql(object):
         '''
         foreignkey_statement = ''
         for fkey in fkeys:
-            foreignkey_statement += ', FOREIGN KEY({}) REFERENCES {}({})'.format(fkey, *fkeys[fkey])
+            foreignkey_statement += ', FOREIGN KEY({}) REFERENCES {}({})'.format(
+                                                              fkey, *fkeys[fkey])
         return foreignkey_statement
 
     def attach(self, database_name, schema_name):
