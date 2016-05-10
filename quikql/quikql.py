@@ -27,8 +27,8 @@ class Quikql(object):
         When called pass in a file path, to set for all future calls
         on wrapper-object.
     
-            @type filename: <type 'str'>
-            @param filename: File path to .db for object to use.
+        @type filename: <type 'str'>
+        @param filename: File path to .db for object to use.
         '''
         self._filename = filename
         self._conn = sqlite3.connect(self._filename)
@@ -66,12 +66,12 @@ class Quikql(object):
         '''
         Private method to retrieve values after a query is made.
 
-            @type cursor: <type 'Cursor object'>
-            @param cursor: The current connection's cursor.
+        @type cursor: <type 'Cursor object'>
+        @param cursor: The current connection's cursor.
 
-            @type items: <type 'Quikql Constant'> or <type 'int'>
-            @param items: Denotes the total amount of values the query is meant
-                          to return.
+        @type items: <type 'NoneType'> or <type 'int'>
+        @param items: Denotes the total amount of values the query is meant to 
+                      return.
         '''
         if items is None:
             return cursor.fetchone()
@@ -85,51 +85,70 @@ class Quikql(object):
     def _repr(self, values):
         return dict(map(repr, i) for i in values.items())
 
-    def create_table(self, table_name, columns, pkey={}, fkey=None):
+    def create_table(self, table_name, columns, pkey=(), fkey=None):
         '''
         Method to create new tables.
         
-            @type table_name: <type 'str'>
-            @param table_name: The name of the new table to create.
+        @type table_name: <type 'str'>
+        @param table_name: The name of the new table to create.
 
-            @type columns: <type 'dict'>
-            @param columns: Keyword argument/s that set column names for table. 
+        @type columns: <type 'dict'>
+        @param columns: Keyword argument/s that set column names for table. 
 
-            @type key: <type 'dict'>
-            @param key: The key-value pairs for the new foreign key.
+        @type pkey: <type 'tuple'>
+        @param pkey: A 'tuple' of 'str's showing which columns will also be
+                     primary keys.
+
+        @type fkey: <type 'NoneType' or 'dict'>
+        @param fkey: The key-value pairs here are, type <'str'> for the key 
+                     representing the foreign key's column name from the table
+                     and the values are of type <'tuple'> indicatting 
+                     ('table-name', 'column-name'), the column-name being a
+                     primary key.
         '''
         create_table_statement = 'CREATE TABLE IF NOT EXISTS %s ' % table_name
-        table_columns = self.create_columns(columns, pkey=pkey, fkey=fkey)
+        table_columns = self._create_columns(columns, pkey=pkey, fkey=fkey)
         self._execute(create_table_statement + table_columns)
 
-    def create_columns(self, columns, pkey={}, fkey=None):
+    def _create_columns(self, columns, pkey=(), fkey=None):
         '''
-        Method to create column schema for a new table.
-
-        @type key: optional argument of <type 'str'>
-        @param key: The key that the newly created column will reference.
+        Private method to create column schema for a new table.
 
         @type columns: <type 'dict'>
         @param columns: The key-value pairs to match identifier-type for the 
                         new table schema.
+
+        @type pkey: <type 'tuple'>
+        @param pkey: A 'tuple' of 'str's showing which columns will also be
+                     primary keys.
+
+        @type fkey: <type 'NoneType' or 'dict'>
+        @param fkey: The key-value pairs here are, type <'str'> for the key 
+                     representing the foreign key's column name from the table
+                     and the values are of type <'tuple'> indicatting 
+                     ('table-name', 'column-name'), the column-name being a
+                     primary key.
         '''
         if not SQLITE_TYPES.issuperset(columns.values()):
             invalid_args = ' '.join(map(str, columns.values())) 
             raise InvalidSQLType(invalid_args)
-        columns_statement = ', '.join([' '.join(i) if pkey.get(i[0]) is None else
+        columns_statement = ', '.join([' '.join(i) if i[0] not in pkey else
                                        ' '.join(i) + ' PRIMARY KEY' for i in 
                                         columns.items()])
         if fkey is not None:
-            columns_statement += self.create_foreign_key(fkey)
+            columns_statement += self._create_foreign_key(fkey)
         return '({})'.format(columns_statement)
 
-    def create_foreign_key(self, fkeys):
+    def _create_foreign_key(self, fkeys):
         '''
-        Method to create a foreign key request.
+        Private method to create a foreign key request.
 
-        @type keys: <type 'dict'>
-        @param keys: The key-value pairs representing the key and reference for
-                     a table schema.
+        @type fkey: <type 'NoneType' or 'dict'>
+        @param fkey: The key-value pairs here are, type <'str'> for the key 
+                     representing the foreign key's column name from the table
+                     and the values are of type <'tuple'> indicatting 
+                     ('table-name', 'column-name'), the column-name being a
+                     primary key.
         '''
         foreignkey_statement = ''
         for fkey in fkeys:
@@ -177,8 +196,8 @@ class Quikql(object):
         '''
         Method to delete a table.
 
-            @type table: <type 'str'>
-            @param table: The name of the table to delete.
+        @type table: <type 'str'>
+        @param table: The name of the table to delete.
         '''
         delete_table_command = 'DROP TABLE IF EXISTS %s' % table
         self._execute(delete_table_command)
@@ -187,12 +206,12 @@ class Quikql(object):
         '''
         Method to query table for values to remove.
 
-            @type table: <type 'str'>
-            @param table: Name of table to query.
+        @type table: <type 'str'>
+        @param table: Name of table to query.
 
-            @type field_values: <type 'dict'>
-            @param field_values: The key-value pairs corresponding to the 
-                                 field and value to be matched for deletion.
+        @type field_values: <type 'dict'>
+        @param field_values: The key-value pairs corresponding to the field and 
+                             value to be matched for deletion.
         '''
         if not isinstance(field_values, dict):
             raise InvalidArg(type(field_values))
@@ -205,14 +224,14 @@ class Quikql(object):
         '''
         Update a column value to a new value.
 
-            @type table: <type 'str'>
-            @param table: The table to update row in.
-    
-            @type columns: <type 'dict'>
-            @param columns: The columns to update the values of.
+        @type table: <type 'str'>
+        @param table: The table to update row in.
 
-            @type row: optional argument of <type 'dict'>
-            @param row: The key-value pairs  to match to a row.
+        @type columns: <type 'dict'>
+        @param columns: The columns to update the values of.
+
+        @type row: optional argument of <type 'dict'>
+        @param row: The key-value pairs  to match to a row.
         '''
         repr_column = self._repr(columns)
         column_update = ', '.join(map('='.join, repr_column.items()))
@@ -262,16 +281,15 @@ class Quikql(object):
         '''
         Method to retrieve row from a specified table.
     
-            @type table: <type 'str'> 
-            @param table: the table to retrieve row from
-    
-            @type field_values: <type 'dict'>
-            @param field_values: A key-value pair to match and retrieve all 
-                                 other adjacent values in the corresponding 
-                                 row.
+        @type table: <type 'str'> 
+        @param table: the table to retrieve row from
 
-            @type size: <type 'int'>
-            @param size: Number of entries to retrieve.
+        @type field_values: <type 'dict'>
+        @param field_values: A key-value pair to match and retrieve all other 
+                             adjacent values in the corresponding row.
+
+        @type size: <type 'int'>
+        @param size: Number of entries to retrieve.
         '''
         if not isinstance(field_values, dict):
             raise InvalidArg(type(field_values))
@@ -357,12 +375,11 @@ class Quikql(object):
         '''
         Method to return entire table contents.
 
-            @type table: <type 'str'>
-            @param table: The table to dump contents of.
+        @type table: <type 'str'>
+        @param table: The table to dump contents of.
 
-            @type order: <type 'NoneType'> or <type 'str'>
-            @param order: Optional argument to return contents ordered by a 
-                          column.
+        @type order: <type 'NoneType'> or <type 'str'>
+        @param order: Optional argument to return contents ordered by a column.
         '''
         table_cmd = 'SELECT * FROM %s' % table
         if order is not None:
@@ -373,8 +390,8 @@ class Quikql(object):
         '''
         Method to find the byte-size of the supplied table.
 
-            @type table: <type 'str'>
-            @param table: The table to find the byte-size for.
+        @type table: <type 'str'>
+        @param table: The table to find the byte-size for.
         '''
         table_data = self.dump_table(table)
         return sys.getsizeof(table_data)
@@ -390,8 +407,8 @@ class Quikql(object):
         '''
         Method to return the schema of a table.
 
-            @type table: <type 'str'>
-            @param table: A table name to search for in database object.
+        @type table: <type 'str'>
+        @param table: A table name to search for in database object.
         '''
         schema_cmd = 'PRAGMA TABLE_INFO(%s)' % table
         return self._execute(schema_cmd, items=ALL)
