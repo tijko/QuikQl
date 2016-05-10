@@ -98,19 +98,23 @@ class QuikqlTest(unittest.TestCase):
 
     def test_minimum_field(self):
         for field in field_set:
-            field_minimum = min([entry[field] for entry in entries if entry.get(field)])
-            self.assertEqual(field_minimum, testdb.min(tablename, field)[0]) 
+            field_minimum = min([entry[field] for entry in entries 
+                                              if entry.get(field)])
+            self.assertEqual(field_minimum, testdb.min(tablename, field)[0])
 
     def test_minimum_InvalidArg(self):
-        self.assertRaises(InvalidArg, testdb.min, tablename, ['field1', 'field2'])
+        self.assertRaises(InvalidArg, testdb.min, tablename, ['field1', 
+                                                              'field2'])
 
     def test_maximum_field(self):
         for field in field_set:
-            field_maximum = max([entry[field] for entry in entries if entry.get(field)])
+            field_maximum = max([entry[field] for entry in entries 
+                                 if entry.get(field)])
             self.assertEqual(field_maximum, testdb.max(tablename, field)[0])
 
     def test_maximum_InvalidArg(self):
-        self.assertRaises(InvalidArg, testdb.max, tablename, ['field1', 'field2'])
+        self.assertRaises(InvalidArg, testdb.max, tablename, ['field1', 
+                                                              'field2'])
 
     def test_sum(self):
         duration_total = sum([entry['duration'] for entry in 
@@ -118,7 +122,8 @@ class QuikqlTest(unittest.TestCase):
         self.assertEqual(duration_total, testdb.sum(tablename, 'duration')[0])
 
     def test_sum_InvalidArg(self):
-        self.assertRaises(InvalidArg, testdb.sum, tablename, ['field1', 'field2'])
+        self.assertRaises(InvalidArg, testdb.sum, tablename, ['field1', 
+                                                              'field2'])
 
     def test_retrieve_table_content(self):
         fields = [i[1] for i in testdb.get_schema('Music')]
@@ -163,20 +168,25 @@ class QuikqlTest(unittest.TestCase):
         schema = {'Bar':'Baz'}
         self.assertRaises(InvalidSQLType, testdb.create_table, table, schema)
 
+def remove_db(path):
+    if os.path.isfile(path):
+        os.unlink(path)
 
 if __name__ == '__main__':
     path = os.getcwd() + '/test.db'
-    if os.path.isfile(path):
-        os.unlink(path)
+    remove_db(path)
     testdb = Quikql(path)
     tablename = 'Music'
     fields = ['duration', 'title', 'artist', 'track_number']
     schema = {'artist':'TEXT', 'title':'TEXT', 
               'duration':'INTEGER', 'track_number':'INTEGER'}
     entries = [{'artist':'Pryda', 'title':'opus', 'duration':532},
-               {'artist':'Deadmau5', 'title':'everything after', 'track_number':3},
+               {'artist':'Deadmau5', 'title':'everything after', 
+                'track_number':3},
                {'artist':'Steve Angello', 'title':'voices', 'duration':531},
                {'artist':'Gramatik', 'title':'prophet2.0'},
                {'artist':'MF Doom', 'title':'Safed Musli'}]
     field_set = {k for e in entries for k in e.keys()}
     unittest.main(verbosity=3) 
+    remove_db(path)
+
