@@ -10,7 +10,7 @@ from quikql import *
 class QuikqlTest(unittest.TestCase):
 
     def setUp(self):
-        testdb.create_table(tablename, schema)
+        testdb.create_table(tablename, schema, pkey=primary_key)
         testdb.insert_rows(tablename, *entries)
 
     def tearDown(self):
@@ -40,14 +40,15 @@ class QuikqlTest(unittest.TestCase):
         self.assertIn(tablename, test_tables[0])
 
     def test_insert_row(self):
-        row = {'artist':'Lifetones', 'title':'Good Sides'}
+        row = {'artist':'Lifetones', 'title':'Good Sides', 'artistid':8}
         testdb.insert_row(tablename, row)
 
     def test_insert_rows(self):
-        rows = [{'artist':'damu', 'title':'How its suppose to be'},
-                {'artist':'Nightmare on Wax', 'title':'You Wish'},
-                {'artist':'Deep Space House', 'duration':12423},
-                {'artist':'Bonobo', 'title':'Black sands', 'track_number':3}]
+        rows = [{'artist':'damu', 'title':'How its suppose to be', 'artistid':9},
+                {'artist':'Nightmare on Wax', 'title':'You Wish', 'artistid':10},
+                {'artist':'Deep Space House', 'duration':12423, 'artistid':11},
+                {'artist':'Bonobo', 'title':'Black sands', 
+                 'track_number':3, 'artistid':12}]
         testdb.insert_rows(tablename, *rows)
         table = testdb.dump_table(tablename)
         rows.extend(entries)
@@ -66,12 +67,12 @@ class QuikqlTest(unittest.TestCase):
         row = {'artist':'Lifetones', 'title':'Good Sides'}
         testdb.insert_row(tablename, row)
         testrow = testdb.get_row(tablename, row, size=ALL)
-        retrieved_row = {'artist':testrow[0][2], 'title':testrow[0][1]}
+        retrieved_row = {'artist':testrow[0][4], 'title':testrow[0][3]}
         self.assertEqual(row, retrieved_row)
 
     def test_delete_row(self):
-        row = {'artist':'Neal Howard', 'title':'The gathering'}
-        row_retrieve = (None, u'The gathering', u'Neal Howard', None,)
+        row = {'artist':'Neal Howard', 'title':'The gathering', 'artistid':8}
+        row_retrieve = (None, None, 8, u'The gathering', u'Neal Howard',)
         testdb.insert_row(tablename, row)
         table_before_del = testdb.dump_table(tablename)
         testdb.delete_row(tablename, row)
@@ -80,14 +81,15 @@ class QuikqlTest(unittest.TestCase):
         self.assertNotIn(row_retrieve, table_after_del)
 
     def test_delete_invalid_row(self):
-        row = {'artist':'The Doors', 'title':'Soul Kitchen'}
+        row = {'artist':'The Doors', 'title':'Soul Kitchen', 'artistid':7}
         table_before_delete = testdb.dump_table(tablename)
         testdb.delete_row(tablename, row)
         table_after_delete = testdb.dump_table(tablename)
         self.assertEqual(table_before_delete, table_after_delete)
 
     def test_count_field(self):
-        field_counts = {'artist':5, 'title':5, 'duration':2, 'track_number':1}
+        field_counts = {'artist':5, 'title':5, 'duration':2, 
+                        'track_number':1, 'artistid':5}
         for field in field_set:
             self.assertEqual(field_counts[field], 
                              testdb.count(tablename, field)[0])
@@ -141,7 +143,7 @@ class QuikqlTest(unittest.TestCase):
         self.assertIn(new_row, table_dump)
 
     def test_update_invalid_row(self):
-        invalid_update_row = {'artist':'Led Zeppelin'}
+        invalid_update_row = {'artist':'Led Zeppelin', 'artistid':6}
         update_column = {'title':'Misty Mountain Top', 'track_number':3}
         new_row = (None, u'Misty Mountain Top', 'Led Zeppelin', 3)
         testdb.update_row(tablename, update_column, invalid_update_row)
@@ -177,15 +179,17 @@ if __name__ == '__main__':
     remove_db(path)
     testdb = Quikql(path)
     tablename = 'Music'
-    fields = ['duration', 'title', 'artist', 'track_number']
-    schema = {'artist':'TEXT', 'title':'TEXT', 
+    fields = ['duration', 'title', 'artist', 'track_number', 'artistid']
+    schema = {'artist':'TEXT', 'title':'TEXT', 'artistid':'INTEGER',
               'duration':'INTEGER', 'track_number':'INTEGER'}
-    entries = [{'artist':'Pryda', 'title':'opus', 'duration':532},
+    primary_key = ('artistid',)
+    entries = [{'artist':'Pryda', 'title':'opus', 'duration':532, 'artistid':1},
                {'artist':'Deadmau5', 'title':'everything after', 
-                'track_number':3},
-               {'artist':'Steve Angello', 'title':'voices', 'duration':531},
-               {'artist':'Gramatik', 'title':'prophet2.0'},
-               {'artist':'MF Doom', 'title':'Safed Musli'}]
+                'track_number':3, 'artistid':2},
+               {'artist':'Steve Angello', 'title':'voices', 
+                'duration':531, 'artistid':3},
+               {'artist':'Gramatik', 'title':'prophet2.0', 'artistid':4},
+               {'artist':'MF Doom', 'title':'Safed Musli', 'artistid':5}]
     field_set = {k for e in entries for k in e.keys()}
     unittest.main(verbosity=3) 
     remove_db(path)
