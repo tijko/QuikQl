@@ -137,7 +137,7 @@ class QuikqlTest(unittest.TestCase):
     def test_update_row(self):
         update_row = {'artist':'Deadmau5', 'track_number':3}
         update_column = {'title':'ID', 'track_number':4}
-        new_row = (None, u'ID', u'Deadmau5', 4)
+        new_row = (None, 4, 2, u'ID', u'Deadmau5')
         testdb.update_row(tablename, update_column, update_row)
         table_dump = testdb.dump_table(tablename)
         self.assertIn(new_row, table_dump)
@@ -179,7 +179,7 @@ if __name__ == '__main__':
     remove_db(path)
     testdb = Quikql(path)
     tablename = 'Music'
-    fields = ['duration', 'title', 'artist', 'track_number', 'artistid']
+    fields = ['duration', 'track_number', 'artistid', 'title', 'artist']
     schema = {'artist':'TEXT', 'title':'TEXT', 'artistid':'INTEGER',
               'duration':'INTEGER', 'track_number':'INTEGER'}
     primary_key = ('artistid',)
