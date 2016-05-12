@@ -42,7 +42,7 @@ class Quikql(object):
         @type command: <type 'str'>
         @param command: A string command to be executed.
 
-        @type items: <type 'Quikql Constant'> or <type 'int'>
+        @type items: <type 'NoneType'> or <type 'int'>
         @param items: Denotes the total amount of values the query is meant
                       to return.
 
