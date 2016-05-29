@@ -10,7 +10,7 @@ import os
 import sys
 import sqlite3
 
-from exceptions import *
+from .exceptions import *
 
 
 SQLITE_TYPES = {'NULL', 'INTEGER', 'TEXT', 'REAL', 'BLOB', 'INTEGER PRIMARY KEY'}
@@ -106,7 +106,8 @@ class Quikql(object):
                      ('table-name', 'column-name'), the column-name being a
                      primary key.
         '''
-        create_table_statement = 'CREATE TABLE IF NOT EXISTS %s ' % table_name
+        create_table_statement = 'CREATE TABLE IF NOT EXISTS {} '.format(
+                                                               table_name)
         table_columns = self._create_columns(columns, pkey=pkey, fkey=fkey)
         self._execute(create_table_statement + table_columns)
 
@@ -167,8 +168,8 @@ class Quikql(object):
         @param schema_name: The name that sqlite will use internally to 
                             reference this database.
         '''
-        attach_command = ('ATTACH DATABASE "%s" AS %s' % 
-                         (database_name, schema_name))
+        attach_command = ('ATTACH DATABASE "{}" AS {}'.format( 
+                          database_name, schema_name))
         self._execute(attach_command)
 
     def detach(self, schema_name):
@@ -180,7 +181,7 @@ class Quikql(object):
         @param schema_name: The name sqlite used to refer to this database.
                             internally (see `attach`).
         '''
-        detach_command = 'DETACH DATABASE %s' % schema_name
+        detach_command = 'DETACH DATABASE {}'.format(schema_name)
         self._execute(detach_command)
  
     def attached(self):
@@ -199,7 +200,7 @@ class Quikql(object):
         @type table: <type 'str'>
         @param table: The name of the table to delete.
         '''
-        delete_table_command = 'DROP TABLE IF EXISTS %s' % table
+        delete_table_command = 'DROP TABLE IF EXISTS {}'.format(table)
         self._execute(delete_table_command)
     
     def delete_row(self, table, field_values):
@@ -215,7 +216,7 @@ class Quikql(object):
         '''
         if not isinstance(field_values, dict):
             raise InvalidArg(type(field_values))
-        del_row_cmd = 'DELETE FROM %s WHERE ' % table
+        del_row_cmd = 'DELETE FROM {} WHERE '.format(table)
         format_values = [v for k in field_values.items() for v in k]
         del_row_cmd += self._field_value_stubs(field_values)
         self._execute(del_row_cmd.format(*format_values))
@@ -235,7 +236,7 @@ class Quikql(object):
         '''
         repr_column = self._repr(columns)
         column_update = ', '.join(map('='.join, repr_column.items()))
-        update_cmd = 'UPDATE %s SET %s' % (table, column_update)
+        update_cmd = 'UPDATE {} SET {}'.format(table, column_update)
         fields = []
         if row is not None:
             update_cmd += ' WHERE ' + self._field_value_stubs(row)
@@ -256,8 +257,8 @@ class Quikql(object):
             raise InvalidArg(type(values))
         repr_insert = self._repr(values)
         columns, row_values = map(', '.join, zip(*repr_insert.items()))
-        insert_command = ('INSERT OR REPLACE INTO %s(%s) VALUES(%s)' % 
-                          (table, columns, row_values))
+        insert_command = ('INSERT OR REPLACE INTO {}({}) VALUES({})'.format( 
+                          table, columns, row_values)
         self._execute(insert_command)
 
     def insert_rows(self, table, *values):
@@ -271,7 +272,7 @@ class Quikql(object):
         @param values: Any number of rows to be inserted.
         '''
         schema = [i[1] for i in self.get_schema(table)]
-        insert_command = 'INSERT OR REPLACE INTO %s VALUES' % table
+        insert_command = 'INSERT OR REPLACE INTO {} VALUES'.format(table)
         value_stubs = '(' + ','.join(['?' for _ in schema]) + ')'
         insert_command += value_stubs
         insert_values = [[value.get(i) for i in schema] for value in values]
@@ -293,7 +294,7 @@ class Quikql(object):
         '''
         if not isinstance(field_values, dict):
             raise InvalidArg(type(field_values))
-        row_cmd = 'SELECT * FROM %s WHERE ' % table
+        row_cmd = 'SELECT * FROM {} WHERE '.format(table)
         format_values = [v for k in field_values.items() for v in k]
         row_cmd += self._field_value_stubs(field_values)
         return self._execute(row_cmd.format(*format_values), items=size)
@@ -308,7 +309,7 @@ class Quikql(object):
         @type column: <type 'str'>
         @param column: The column name to be retrieve from table.
         '''
-        get_column_cmd = 'SELECT %s FROM %s' % (column, table)
+        get_column_cmd = 'SELECT {} FROM {}'.format(column, table)
         return self._execute(get_column_cmd, items=ALL)
 
     def count(self, table, field):
@@ -323,7 +324,7 @@ class Quikql(object):
         '''
         if not isinstance(field, str):
             raise InvalidArg(type(field))
-        count_cmd = 'SELECT COUNT(%s) FROM %s' % (field, table)
+        count_cmd = 'SELECT COUNT({}) FROM {}'.format(field, table)
         return self._execute(count_cmd) 
 
     def min(self, table, field):
@@ -338,7 +339,7 @@ class Quikql(object):
         '''
         if not isinstance(field, str):
             raise InvalidArg(type(field))
-        minimum_cmd = 'SELECT MIN(%s) FROM %s' % (field, table)
+        minimum_cmd = 'SELECT MIN({}) FROM {}'.format(field, table)
         return self._execute(minimum_cmd)
 
     def max(self, table, field):
@@ -353,7 +354,7 @@ class Quikql(object):
         '''
         if not isinstance(field, str):
             raise InvalidArg(type(field))
-        maximum_cmd = 'SELECT MAX(%s) FROM %s' % (field, table)
+        maximum_cmd = 'SELECT MAX({}) FROM {}'.format(field, table)
         return self._execute(maximum_cmd)
 
     def sum(self, table, field):
@@ -368,7 +369,7 @@ class Quikql(object):
         '''
         if not isinstance(field, str):
             raise InvalidArg(type(field))
-        sum_cmd = 'SELECT SUM(%s) FROM %s' % (field, table)
+        sum_cmd = 'SELECT SUM({}) FROM {}'.format(field, table)
         return self._execute(sum_cmd)
 
     def dump_table(self, table, order=None):
@@ -381,9 +382,9 @@ class Quikql(object):
         @type order: <type 'NoneType'> or <type 'str'>
         @param order: Optional argument to return contents ordered by a column.
         '''
-        table_cmd = 'SELECT * FROM %s' % table
+        table_cmd = 'SELECT * FROM {}'.format(table)
         if order is not None:
-            table_cmd += ' ORDER BY %s' % order
+            table_cmd += ' ORDER BY {}'.format(order)
         return self._execute(table_cmd, items=ALL) 
 
     def table_size(self, table):
@@ -410,5 +411,5 @@ class Quikql(object):
         @type table: <type 'str'>
         @param table: A table name to search for in database object.
         '''
-        schema_cmd = 'PRAGMA TABLE_INFO(%s)' % table
+        schema_cmd = 'PRAGMA TABLE_INFO({})'.format(table)
         return self._execute(schema_cmd, items=ALL)
