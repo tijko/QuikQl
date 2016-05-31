@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import json
 import unittest
 
 from quikql import *
@@ -9,188 +10,197 @@ from quikql import *
 
 class QuikqlTest(unittest.TestCase):
 
-    def setUp(self):
-        testdb.create_table(tablename, schema, pkey=primary_key)
-        testdb.insert_rows(tablename, *entries)
-
-    def tearDown(self):
-        tables = testdb.get_tables()
-        for table in tables:
-            testdb.delete_table(table)
-
     def test_create_table(self):
-        testtable = 'Open_Source_Software'
-        schema = {'name':'TEXT', 'language':'TEXT', 'loc':'INTEGER'}
-        testdb.create_table(testtable, schema)
-        tables = [i[0] for i in testdb.get_tables()]
-        self.assertIn(testtable, tables)
+        tables_before = [i[0] for i in testdb.get_tables()]
+        self.assertNotIn(test_table, tables_before)
+        testdb.create_table(test_table, test_schema)
+        tables_after = [i[0] for i in testdb.get_tables()]
+        self.assertIn(test_table, tables_after)
+        testdb.delete_table(test_table)
 
     def test_delete_table(self):
-        testdb.delete_table(tablename)
-        tables = testdb.get_tables()
-        self.assertFalse(tables)
+        testdb.create_table(test_table, test_schema)
+        tables_before = [i[0] for i in testdb.get_tables()]
+        self.assertIn(test_table, tables_before)
+        testdb.delete_table(test_table)
+        tables_after = [i[0] for i in testdb.get_tables()]
+        self.assertNotIn(test_table, tables_after)
 
     def test_get_schema(self):
-        test_schema = testdb.get_schema(tablename)
-        schema_map = {i[1]:i[2] for i in test_schema}
-        self.assertEqual(schema, schema_map)
+        test_artists_schema = testdb.get_schema('artists')
+        test_music_schema = testdb.get_schema('music')
+        artists_schema_map = {i[1]:i[2] for i in test_artists_schema}
+        music_schema_map = {i[1]:i[2] for i in test_music_schema}
+        self.assertEqual(artists_schema, artists_schema_map)
+        self.assertEqual(music_schema, music_schema_map)
 
     def test_get_tables(self):
         test_tables = testdb.get_tables()
-        self.assertIn(tablename, test_tables[0])
+        self.assertSequenceEqual(['artists', 'music'], 
+                                 [t[0] for t in test_tables])
 
     def test_insert_row(self):
-        row = {'artist':'Lifetones', 'title':'Good Sides', 'artistid':8}
-        testdb.insert_row(tablename, row)
+        artists_row = {'artist':'Lifetones'}
+        get_field = ('Lifetones',)
+        get_before = testdb.get_row('artists', artists_row)
+        self.assertIsNone(get_before)
+        testdb.insert_row('artists', artists_row)
+        get_after = testdb.get_row('artists', artists_row)
+        self.assertEqual(get_field, get_after)
+        testdb.delete_row('artists', artists_row)
 
     def test_insert_rows(self):
-        rows = [{'artist':'damu', 'title':'How its suppose to be', 'artistid':9},
-                {'artist':'Nightmare on Wax', 'title':'You Wish', 'artistid':10},
-                {'artist':'Deep Space House', 'duration':12423, 'artistid':11},
-                {'artist':'Bonobo', 'title':'Black sands', 
-                 'track_number':3, 'artistid':12}]
-        testdb.insert_rows(tablename, *rows)
-        table = testdb.dump_table(tablename)
-        rows.extend(entries)
-        current_entries = []
-        for entry in table:
-            row = {}
-            for i in range(len(entry)):
-                if entry[i] is not None:
-                    row[fields[i]] = entry[i]
-            if row:
-                current_entries.append(row)
-        for row in rows:
-            self.assertIn(row, current_entries)
-
+        artists_rows = [{'artist':'Leon Vynehall'},
+                        {'artist':'JaimeXX'},
+                        {'artist':'Caribou'},
+                        {'artist':'Dusky'}] 
+        for artist in artists_rows:
+            get_before = testdb.get_row('artists', artist)
+            self.assertIsNone(get_before)
+        testdb.insert_rows('artists', *artists_rows)
+        for artist in artists_rows:
+            get_after = testdb.get_row('artists', artist)
+            self.assertEqual(artist['artist'], *get_after)
+            testdb.delete_row('artists', artist) 
+        
     def test_get_row(self):
-        row = {'artist':'Lifetones', 'title':'Good Sides'}
-        testdb.insert_row(tablename, row)
-        testrow = testdb.get_row(tablename, row, size=ALL)
-        retrieved_row = {'artist':testrow[0][4], 'title':testrow[0][3]}
-        self.assertEqual(row, retrieved_row)
+        artist_row = {'artist':'Lifetones'}
+        testdb.insert_row('artists', artist_row)
+        test_get = testdb.get_row('artists', artist_row, size=ALL)
+        self.assertEqual(('Lifetones',), test_get[0])
+        testdb.delete_row('artists', artist_row)
 
     def test_delete_row(self):
-        row = {'artist':'Neal Howard', 'title':'The gathering', 'artistid':8}
-        row_retrieve = (None, None, 8, u'The gathering', u'Neal Howard',)
-        testdb.insert_row(tablename, row)
-        table_before_del = testdb.dump_table(tablename)
-        testdb.delete_row(tablename, row)
-        table_after_del = testdb.dump_table(tablename)
-        self.assertIn(row_retrieve, table_before_del)
-        self.assertNotIn(row_retrieve, table_after_del)
+        row = {'artist':'Neal Howard'}
+        testdb.insert_row('artists', row)
+        row_before = testdb.get_row('artists', row)
+        self.assertIsNotNone(row_before)
+        testdb.delete_row('artists', row)
+        row_after = testdb.get_row('artists', row)
+        self.assertIsNone(row_after)
 
     def test_delete_invalid_row(self):
-        row = {'artist':'The Doors', 'title':'Soul Kitchen', 'artistid':7}
-        table_before_delete = testdb.dump_table(tablename)
-        testdb.delete_row(tablename, row)
-        table_after_delete = testdb.dump_table(tablename)
+        del_row = {'artist':'The Doors'}
+        table_before_delete = testdb.dump_table('artists')
+        testdb.delete_row('artists', del_row)
+        table_after_delete = testdb.dump_table('artists')
         self.assertEqual(table_before_delete, table_after_delete)
 
     def test_count_field(self):
-        field_counts = {'artist':5, 'title':5, 'duration':2, 
-                        'track_number':1, 'artistid':5}
-        for field in field_set:
-            self.assertEqual(field_counts[field], 
-                             testdb.count(tablename, field)[0])
+        artist_count = len(json_data['artists'])
+        self.assertEqual(artist_count, testdb.count('artists', 'artist')[0])
 
     def test_count_InvalidArg(self):
         self.assertRaises(InvalidArg, testdb.count,
-                          tablename, ['field1', 'field2'])
+                          'artists', ['field1', 'field2'])
 
     def test_minimum_field(self):
-        for field in field_set:
-            field_minimum = min([entry[field] for entry in entries 
-                                              if entry.get(field)])
-            self.assertEqual(field_minimum, testdb.min(tablename, field)[0])
+        min_artist = 'aphex twin'
+        testdb.insert_row('artists', {'artist':min_artist})
+        self.assertEqual(min_artist, testdb.min('artists', 'artist')[0])
+        testdb.delete_row('artists', {'artist':min_artist})
 
     def test_minimum_InvalidArg(self):
-        self.assertRaises(InvalidArg, testdb.min, tablename, ['field1', 
+        self.assertRaises(InvalidArg, testdb.min, 'artists', ['field1', 
                                                               'field2'])
-
     def test_maximum_field(self):
-        for field in field_set:
-            field_maximum = max([entry[field] for entry in entries 
-                                 if entry.get(field)])
-            self.assertEqual(field_maximum, testdb.max(tablename, field)[0])
+        max_artist = 'zz top'
+        testdb.insert_row('artists', {'artist':max_artist})
+        self.assertEqual(max_artist, testdb.max('artists', 'artist')[0])
+        testdb.delete_row('artists', {'artist':max_artist})
 
     def test_maximum_InvalidArg(self):
-        self.assertRaises(InvalidArg, testdb.max, tablename, ['field1', 
+        self.assertRaises(InvalidArg, testdb.max, 'artists', ['field1', 
                                                               'field2'])
 
     def test_sum(self):
-        duration_total = sum([entry['duration'] for entry in 
-                              entries if entry.get('duration')])
-        self.assertEqual(duration_total, testdb.sum(tablename, 'duration')[0])
+        duration_updates = [({'duration':4.02}, {'track':'Blue Moon'}),
+                            ({'duration':8.12}, {'track':'Player'}),
+                            ({'duration':2.08}, {'track':'Nettle Leaves'})]
+        test_total = sum([i[0]['duration'] for i in duration_updates])
+        for update in duration_updates:
+            testdb.update_row('music', update[0], row=update[1])
+        self.assertEqual(test_total, testdb.sum('music', 'duration')[0])
 
     def test_sum_InvalidArg(self):
-        self.assertRaises(InvalidArg, testdb.sum, tablename, ['field1', 
+        self.assertRaises(InvalidArg, testdb.sum, 'artists', ['field1', 
                                                               'field2'])
 
     def test_retrieve_table_content(self):
-        fields = [i[1] for i in testdb.get_schema('Music')]
-        current_entries = [tuple(entry.get(field) for field in fields) 
-                           for entry in entries]
-        testtable = testdb.dump_table(tablename)
-        self.assertEqual(testtable, current_entries)
+        artists = [entry for entry in json_data['artists']]
+        table_artists = [i[0] for i in testdb.dump_table('artists')]
+        self.assertEqual(artists, table_artists)
 
     def test_update_row(self):
-        update_row = {'artist':'Deadmau5', 'track_number':3}
-        update_column = {'title':'ID', 'track_number':4}
-        new_row = (None, 4, 2, u'ID', u'Deadmau5')
-        testdb.update_row(tablename, update_column, update_row)
-        table_dump = testdb.dump_table(tablename)
-        self.assertIn(new_row, table_dump)
+        update_row = {'artist':'deadmau5', 'track':'Fallen'}
+        update_column = {'duration':2.31}
+        before_duration = testdb.get_row('music', update_row) 
+        self.assertNotIn(2.31, before_duration)
+        testdb.update_row('music', update_column, update_row)
+        after_duration = testdb.get_row('music', update_row)
+        self.assertIn(2.31, after_duration)
 
     def test_update_invalid_row(self):
-        invalid_update_row = {'artist':'Led Zeppelin', 'artistid':6}
-        update_column = {'title':'Misty Mountain Top', 'track_number':3}
-        new_row = (None, u'Misty Mountain Top', 'Led Zeppelin', 3)
-        testdb.update_row(tablename, update_column, invalid_update_row)
-        table_dump = testdb.dump_table(tablename)
-        self.assertNotIn(new_row, table_dump)
+        invalid_update_row = {'artist':'Led Zeppelin'}
+        update_column = {'track':'Misty Mountain Top'}
+        testdb.update_row('music', update_column, invalid_update_row)
+        get_row = testdb.get_row('music', {'artist':'Led Zeppelin',
+                                           'track':'Misty Mountain Top'})
+        self.assertIsNone(get_row)
 
     def test_insert_InvalidArg(self):
         invalid_row_insert = [('artist', 'Diplo')]
         self.assertRaises(InvalidArg, testdb.insert_row, 
-                          tablename, invalid_row_insert)
+                          'artists', invalid_row_insert)
 
     def test_delete_InvalidArg(self):
         invalid_row_delete = [('artist', 'Frank Sinatra')]
         self.assertRaises(InvalidArg, testdb.delete_row,
-                          tablename, invalid_row_delete)
+                          'artists', invalid_row_delete)
 
     def test_get_InvalidArg(self):
         invalid_row_get = [('artist', 'Franz Schubert')]
         self.assertRaises(InvalidArg, testdb.get_row,
-                          tablename, invalid_row_get)
- 
+                          'artists', invalid_row_get)
+
     def test_create_InvalidSQLType(self):
         table = 'Foo'
         schema = {'Bar':'Baz'}
         self.assertRaises(InvalidSQLType, testdb.create_table, table, schema)
+
+def create_database(db_name, artists_schema, music_schema):
+    testdb = Quikql(db_name)
+    testdb.create_table('artists', artists_schema, pkey=('artist',))
+    testdb.create_table('music', music_schema, 
+                         fkey={'artist':('artists', 'artist')})
+    return testdb
+
+def read_json_data(json_fname):
+    with open(json_fname) as f:
+        raw_json_str = f.read()
+    return json.loads(raw_json_str)
+
+def build_database(testdb, json_data):
+    for artist in json_data['artists']:
+        testdb.insert_row('artists', {'artist':artist})
+        for title in json_data['artists'][artist]['titles']:
+            testdb.insert_row('music', {'artist':artist,
+                                        'track':title}) 
 
 def remove_db(path):
     if os.path.isfile(path):
         os.unlink(path)
 
 if __name__ == '__main__':
-    path = os.getcwd() + '/test.db'
+    path = os.getcwd() + '/radio.db'
+    artists_schema = {'artist':TEXT}
+    music_schema = {'track':TEXT, 'duration':REAL,
+                    'album':TEXT, 'artist':TEXT}
     remove_db(path)
-    testdb = Quikql(path)
-    tablename = 'Music'
-    fields = ['duration', 'track_number', 'artistid', 'title', 'artist']
-    schema = {'artist':'TEXT', 'title':'TEXT', 'artistid':'INTEGER',
-              'duration':'INTEGER', 'track_number':'INTEGER'}
-    primary_key = ('artistid',)
-    entries = [{'artist':'Pryda', 'title':'opus', 'duration':532, 'artistid':1},
-               {'artist':'Deadmau5', 'title':'everything after', 
-                'track_number':3, 'artistid':2},
-               {'artist':'Steve Angello', 'title':'voices', 
-                'duration':531, 'artistid':3},
-               {'artist':'Gramatik', 'title':'prophet2.0', 'artistid':4},
-               {'artist':'MF Doom', 'title':'Safed Musli', 'artistid':5}]
-    field_set = {k for e in entries for k in e.keys()}
+    testdb = create_database('radio.db', artists_schema, music_schema)
+    json_data = read_json_data('recordings.txt')
+    build_database(testdb, json_data)
+    test_table = 'Open_Source_Software'
+    test_schema = {'name':TEXT, 'language':TEXT, 'loc':INTEGER}
     unittest.main(verbosity=3) 
     remove_db(path)
-
