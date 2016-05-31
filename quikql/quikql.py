@@ -13,6 +13,13 @@ import sqlite3
 from .exceptions import *
 
 
+NULL = 'NULL'
+INTEGER = 'INTEGER'
+TEXT = 'TEXT'
+REAL = 'REAL'
+BLOB = 'BLOB'
+INTEGER_PRIMARY_KEY = 'INTEGER PRIMARY KEY'
+
 SQLITE_TYPES = {'NULL', 'INTEGER', 'TEXT', 'REAL', 'BLOB', 'INTEGER PRIMARY KEY'}
 
 ALL = Ellipsis
@@ -108,7 +115,8 @@ class Quikql(object):
         '''
         create_table_statement = 'CREATE TABLE IF NOT EXISTS {} '.format(
                                                                table_name)
-        table_columns = self._create_columns(columns, pkey=pkey, fkey=fkey)
+        table_columns = self._create_columns(columns, pkey=tuple(pkey), 
+                                                            fkey=fkey)
         self._execute(create_table_statement + table_columns)
 
     def _create_columns(self, columns, pkey=(), fkey=None):
@@ -257,7 +265,7 @@ class Quikql(object):
             raise InvalidArg(type(values))
         repr_insert = self._repr(values)
         columns, row_values = map(', '.join, zip(*repr_insert.items()))
-        insert_command = ('INSERT OR REPLACE INTO {}({}) VALUES({})'.format( 
+        insert_command = 'INSERT OR REPLACE INTO {}({}) VALUES({})'.format( 
                           table, columns, row_values)
         self._execute(insert_command)
 
