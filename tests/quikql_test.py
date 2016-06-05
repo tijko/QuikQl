@@ -6,6 +6,7 @@ import json
 import unittest
 
 from quikql import *
+from sqlite3 import IntegrityError
 
 
 class QuikqlTest(unittest.TestCase):
@@ -100,7 +101,7 @@ class QuikqlTest(unittest.TestCase):
         row_after = self.testdb.get_row('artists', row)
         self.assertIsNone(row_after)
 
-    def test_delete_invalid_row(self):
+    def test_delete_row_InvalidRow(self):
         del_row = {'artist':'The Doors'}
         table_before_delete = self.testdb.dump_table('artists')
         self.testdb.delete_row('artists', del_row)
@@ -161,7 +162,7 @@ class QuikqlTest(unittest.TestCase):
         after_duration = self.testdb.get_row('music', update_row)
         self.assertIn(2.31, after_duration)
 
-    def test_update_invalid_row(self):
+    def test_update_row_InvalidRow(self):
         invalid_update_row = {'artist':'Led Zeppelin'}
         update_column = {'track':'Misty Mountain Top'}
         self.testdb.update_row('music', update_column, invalid_update_row)
@@ -169,26 +170,32 @@ class QuikqlTest(unittest.TestCase):
                                            'track':'Misty Mountain Top'})
         self.assertIsNone(get_row)
 
-    def test_insert_InvalidArg(self):
-        invalid_row_insert = [('artist', 'Diplo')]
+    def test_insert_row_InvalidArg(self):
+        invalid_insert_row = [('artist', 'Diplo')]
         self.assertRaises(InvalidArg, self.testdb.insert_row, 
-                          'artists', invalid_row_insert)
+                          'artists', invalid_insert_row)
 
-    def test_delete_InvalidArg(self):
-        invalid_row_delete = [('artist', 'Frank Sinatra')]
+    def test_delete_row_InvalidArg(self):
+        invalid_delete_row = [('artist', 'Frank Sinatra')]
         self.assertRaises(InvalidArg, self.testdb.delete_row,
-                          'artists', invalid_row_delete)
+                          'artists', invalid_delete_row)
 
-    def test_get_InvalidArg(self):
-        invalid_row_get = [('artist', 'Franz Schubert')]
+    def test_get_row_InvalidArg(self):
+        invalid_get_row = [('artist', 'Franz Schubert')]
         self.assertRaises(InvalidArg, self.testdb.get_row,
-                          'artists', invalid_row_get)
+                          'artists', invalid_get_row)
 
-    def test_create_InvalidSQLType(self):
+    def test_create_table_InvalidSQLType(self):
         table = 'Foo'
         schema = {'Bar':'Baz'}
         self.assertRaises(InvalidSQLType, self.testdb.create_table, 
                                                      table, schema)
+    
+    def test_insert_row_InvalidForeignKey(self):
+        invalid_foreignkey = {'artist':'foo', 'track':'bar', 'album':'baz'}
+        self.assertRaises(IntegrityError, self.testdb.insert_row, 
+                          'music', invalid_foreignkey)
+        
 
 def remove_db(path):
     if os.path.isfile(path):
